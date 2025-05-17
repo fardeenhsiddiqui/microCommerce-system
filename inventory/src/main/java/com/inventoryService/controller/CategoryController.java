@@ -29,7 +29,8 @@ public class CategoryController {
         try {
             Category category = categoryService.createCategory(dto);
             CategoryResponseDTO response = mapToResponseDTO(category);
-            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, response, null));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ApiResponse<>(true, response, null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>(false, null, e.getMessage()));
