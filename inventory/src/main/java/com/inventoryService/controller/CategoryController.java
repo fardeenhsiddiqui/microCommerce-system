@@ -4,11 +4,15 @@ import com.inventoryService.entity.Category;
 import com.inventoryService.model.ApiResponse;
 import com.inventoryService.model.category.CategoryResponseDTO;
 import com.inventoryService.model.category.CreateCategoryDTO;
+import com.inventoryService.model.category.MinimalCategoryDTO;
 import com.inventoryService.service.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/category/")
@@ -30,6 +34,19 @@ public class CategoryController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>(false, null, e.getMessage()));
         }
+    }
+
+    @GetMapping("/minimal")
+    public ResponseEntity<ApiResponse<List<MinimalCategoryDTO>>> getMinimalCategories() {
+        List<MinimalCategoryDTO> list = categoryService.getMinimalCategories();
+        return ResponseEntity.ok(new ApiResponse<>(true, list, null));
+    }
+
+    @GetMapping("/subCategory")
+    public ResponseEntity<ApiResponse<List<MinimalCategoryDTO>>> getSubCategories(@RequestParam String categoryId) {
+        System.out.println("1......." + categoryId);
+        List<MinimalCategoryDTO> list = categoryService.getSubCategory(UUID.fromString(categoryId));
+        return ResponseEntity.ok(new ApiResponse<>(true, list, null));
     }
 
     private CategoryResponseDTO mapToResponseDTO(Category category) {

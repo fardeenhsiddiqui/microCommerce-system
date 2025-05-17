@@ -15,7 +15,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(false, null, "Server error"));
+    public ResponseEntity<ApiResponse<?>> handleGenericException(Exception ex) {
+        ex.printStackTrace(); // Log error
+        ApiResponse<?> response = new ApiResponse<>(false, null, ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // You can also add more specific handlers like:
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadRequest(IllegalArgumentException ex) {
+        return new ResponseEntity<>(new ApiResponse<>(false, null, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }
