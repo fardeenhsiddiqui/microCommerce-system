@@ -1,4 +1,4 @@
-package com.inventoryService.model;
+package com.inventoryService.model.product;
 
 import java.util.UUID;
 

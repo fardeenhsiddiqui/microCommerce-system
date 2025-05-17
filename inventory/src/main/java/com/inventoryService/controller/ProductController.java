@@ -1,7 +1,6 @@
 package com.inventoryService.controller;
 
-import com.inventoryService.entity.Product;
-import com.inventoryService.model.ProductDTO;
+import com.inventoryService.model.product.ProductDTO;
 import com.inventoryService.service.ProductService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

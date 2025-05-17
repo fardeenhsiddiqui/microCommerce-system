@@ -3,6 +3,8 @@ package com.inventoryService.entity;
 
 import com.inventoryService.enums.ProductStatus;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -10,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-public class Product {
+public class Product implements CatalogComponent{
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
@@ -26,11 +28,14 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductImage> galleryImages = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<Category> categoryList;
+    @ManyToOne
+    private Category category;
 
+    @CreatedDate
     private LocalDate createdDate;
+    @CreatedBy
     private String createdBy;
+
     private LocalDate deletedDate;
     private String deletedBy;
 
@@ -44,6 +49,11 @@ public class Product {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public void print(String prefix) {
+        System.out.println("Product");
     }
 
     public void setName(String name) {
@@ -98,14 +108,6 @@ public class Product {
         this.createdDate = createdDate;
     }
 
-    public List<Category> getCategoryList() {
-        return categoryList;
-    }
-
-    public void setCategoryList(List<Category> categoryList) {
-        this.categoryList = categoryList;
-    }
-
     public String getCreatedBy() {
         return createdBy;
     }
@@ -128,5 +130,13 @@ public class Product {
 
     public void setDeletedBy(String deletedBy) {
         this.deletedBy = deletedBy;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }
