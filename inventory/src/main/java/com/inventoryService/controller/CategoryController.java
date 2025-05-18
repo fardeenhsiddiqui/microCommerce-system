@@ -51,13 +51,6 @@ public class CategoryController {
     }
 
     private CategoryResponseDTO mapToResponseDTO(Category category) {
-        CategoryResponseDTO dto = new CategoryResponseDTO();
-        dto.setId(category.getId());
-        dto.setName(category.getName());
-        dto.setDescription(category.getDescription());
-        if (category.getParent() != null) {
-            dto.setParentId(category.getParent().getId());
-        }
-        return dto;
+        return new CategoryResponseDTO(category);
     }
 }

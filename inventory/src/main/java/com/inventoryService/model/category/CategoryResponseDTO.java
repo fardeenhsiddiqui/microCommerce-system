@@ -14,27 +14,11 @@ public class CategoryResponseDTO {
     public CategoryResponseDTO() {
     }
 
-    public CategoryResponseDTO(UUID id, String name, String description, UUID parentId) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.parentId = parentId;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setParentId(UUID parentId) {
-        this.parentId = parentId;
+    public CategoryResponseDTO(Category category) {
+        this.id = category.getId();
+        this.name = category.getName();
+        this.description = category.getDescription();
+        this.parentId = category.getParent().getId() != null ? category.getParent().getId() : null;
     }
 
     public UUID getId() {

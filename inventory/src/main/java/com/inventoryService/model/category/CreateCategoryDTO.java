@@ -32,16 +32,4 @@ public class CreateCategoryDTO {
 
     public CreateCategoryDTO() {}
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public void setParentId(UUID parentId) {
-        this.parentId = parentId;
-    }
-
 }
