@@ -16,12 +16,15 @@ public class CreateProductDTO {
     private Double price;
     @NotNull
     private UUID categoryId;
+    @NotNull
+    private Long stock;
 
-    public CreateProductDTO(String name, String description, Double price, UUID categoryId) {
+    public CreateProductDTO(String name, String description, Double price, UUID categoryId, Long stock) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.categoryId = categoryId;
+        this.stock = stock;
     }
 
     public String getName() {
@@ -38,6 +41,10 @@ public class CreateProductDTO {
 
     public UUID getCategoryId() {
         return categoryId;
+    }
+
+    public Long getStock(){
+        return stock;
     }
 
 }

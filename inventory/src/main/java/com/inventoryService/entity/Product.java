@@ -22,6 +22,7 @@ public class Product implements CatalogComponent{
     private String description;
     private Double price;
     private ProductStatus productStatus;
+    private Long stock;
 
     private String mainImageUrl;
 
@@ -138,5 +139,13 @@ public class Product implements CatalogComponent{
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public Long getStock() {
+        return stock;
+    }
+
+    public void setStock(Long stock) {
+        this.stock = stock;
     }
 }

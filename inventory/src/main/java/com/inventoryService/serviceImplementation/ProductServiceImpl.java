@@ -3,26 +3,33 @@ package com.inventoryService.serviceImplementation;
 import com.inventoryService.entity.Category;
 import com.inventoryService.entity.Product;
 import com.inventoryService.enums.ProductStatus;
+import com.inventoryService.gateway.publisher.RestockEventPublisher;
+import com.inventoryService.event.ProductRestockedEvent;
 import com.inventoryService.model.product.CreateProductDTO;
 import com.inventoryService.model.product.ProductDTO;
 import com.inventoryService.repository.CategoryRepository;
 import com.inventoryService.repository.ProductRepository;
 import com.inventoryService.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    @Autowired
-    ProductRepository productRepository;
-    @Autowired
-    CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final RestockEventPublisher eventPublisher;
+
+    public ProductServiceImpl(ProductRepository productRepository,
+                          CategoryRepository categoryRepository,
+                          RestockEventPublisher eventPublisher) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.eventPublisher = eventPublisher;
+    }
 
     @Override
     public List<ProductDTO> getAllProducts() {
@@ -39,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setProductStatus(ProductStatus.ACTIVE);
+        product.setStock(dto.getStock());
 
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -46,11 +54,21 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setCreatedBy("ADMIN");
         product.setCreatedDate(LocalDate.now());
-        return productRepository.save(product);
+
+        // Save product first
+        Product savedProduct = productRepository.save(product);
+
+        // Publish event if stock > 0
+        if (savedProduct.getStock() > 0) {
+            eventPublisher.publish(new ProductRestockedEvent(savedProduct.getId(), savedProduct.getName()));
+        }
+
+        return savedProduct;
     }
 
     // Convert Product Entity to ProductDTO
     private ProductDTO convertToDTO(Product product) {
         return new ProductDTO(product.getId(), product.getName(), product.getDescription(), product.getPrice());
     }
+
 }
