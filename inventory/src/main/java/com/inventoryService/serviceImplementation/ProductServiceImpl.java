@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,7 +47,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setProductStatus(ProductStatus.ACTIVE);
-        product.setStock(dto.getStock());
+        product.setStock(dto.getStock() != null ? dto.getStock() : 0L);
 
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -56,19 +57,31 @@ public class ProductServiceImpl implements ProductService {
         product.setCreatedDate(LocalDate.now());
 
         // Save product first
-        Product savedProduct = productRepository.save(product);
+//        Product savedProduct = productRepository.save(product);
+//        // Publish event if stock > 0
+//        if (savedProduct.getStock() > 0) {
+//            eventPublisher.publish(new ProductRestockedEvent(savedProduct.getId(), savedProduct.getName()));
+//        }
 
-        // Publish event if stock > 0
-        if (savedProduct.getStock() > 0) {
-            eventPublisher.publish(new ProductRestockedEvent(savedProduct.getId(), savedProduct.getName()));
-        }
-
-        return savedProduct;
+        return productRepository.save(product);
     }
 
     // Convert Product Entity to ProductDTO
     private ProductDTO convertToDTO(Product product) {
         return new ProductDTO(product.getId(), product.getName(), product.getDescription(), product.getPrice());
+    }
+
+    @Override
+    public Product updateStock(UUID productId, Long newStock){
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        System.out.println("1......1 " + newStock);
+        if (product.getStock() == 0 && newStock > 0) {
+            eventPublisher.publish(new ProductRestockedEvent(productId, product.getName()));
+        }
+        product.setStock(newStock);
+        return productRepository.save(product);
     }
 
 }

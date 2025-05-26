@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.Reader;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/product/")
@@ -33,6 +34,19 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductResponseDTO>> addProduct(@Valid @RequestBody CreateProductDTO dto){
         try{
             Product product = productService.createProduct(dto);
+            ProductResponseDTO response = mapToResponseDTO(product);
+            return ResponseEntity.status(HttpStatus.OK).
+                    body(new ApiResponse<>(true, response,null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(false, null, e.getMessage()));
+        }
+    }
+
+    @PostMapping("stockUpdate")
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> stockUpdate(@Valid @RequestParam String productId, @RequestParam Long stock){
+        try{
+            Product product = productService.updateStock(UUID.fromString(productId), stock);
             ProductResponseDTO response = mapToResponseDTO(product);
             return ResponseEntity.status(HttpStatus.OK).
                     body(new ApiResponse<>(true, response,null));

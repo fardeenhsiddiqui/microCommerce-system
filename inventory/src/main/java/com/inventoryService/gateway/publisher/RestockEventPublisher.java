@@ -15,6 +15,7 @@ public class RestockEventPublisher {
     }
 
     public void publish(ProductRestockedEvent event){
+        System.out.println("1........2" + event.getProductName());
         rabbitTemplate.convertAndSend(QueueKeysName.PRODUCT_EXCHANGE, QueueKeysName.PRODUCT_RESTOCK_KEY, event);
     }
 }

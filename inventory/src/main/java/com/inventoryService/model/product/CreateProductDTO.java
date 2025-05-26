@@ -16,7 +16,6 @@ public class CreateProductDTO {
     private Double price;
     @NotNull
     private UUID categoryId;
-    @NotNull
     private Long stock;
 
     public CreateProductDTO(String name, String description, Double price, UUID categoryId, Long stock) {
