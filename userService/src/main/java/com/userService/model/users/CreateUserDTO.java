@@ -22,13 +22,15 @@ public class CreateUserDTO {
     @NotNull
     @NotBlank
     private String password;
+    private String role;
 
-    public CreateUserDTO(String userName, String firstName, String lastName, String email, String password) {
+    public CreateUserDTO(String userName, String firstName, String lastName, String email, String password, String role) {
         this.userName = userName;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
     public String getUserName() {
@@ -49,5 +51,9 @@ public class CreateUserDTO {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getRole() {
+        return role;
     }
 }

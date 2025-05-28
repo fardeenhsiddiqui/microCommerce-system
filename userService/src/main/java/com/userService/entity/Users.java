@@ -23,6 +23,7 @@ public class Users {
 
     private String email;
     private String password;
+    private String role;
 
     @CreatedBy
     private String createdBy;
@@ -30,6 +31,14 @@ public class Users {
     private LocalDateTime createdDate;
     private String deletedBy;
     private LocalDateTime deletedDate;
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     public String getCreatedBy() {
         return createdBy;
