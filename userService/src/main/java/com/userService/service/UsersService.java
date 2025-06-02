@@ -14,11 +14,12 @@ import java.time.LocalDateTime;
 @Service
 public class UsersService {
 
-    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    public UsersService(UserRepository userRepository){
+    public UsersService(UserRepository userRepository, PasswordEncoder passwordEncoder){
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Users createUser(CreateUserDTO dto){
@@ -27,7 +28,7 @@ public class UsersService {
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setEmail(dto.getEmail());
-        user.setRole("ADMIN");
+        user.setRole(dto.getRole());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         user.setCreatedBy("ADMIN");
