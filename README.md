@@ -6,7 +6,7 @@ This project is a scalable, service-oriented e-commerce backend platform designe
 - **User Service**: Handles registration, login (JWT-based), product subscription with notification and user management. Ready for role/permission expansion.
 - **Authentication**: OAuth2 and JWT-based token generation and validation with protected API access.
 - **Inventory Service (under Product module)**: Manages product stock levels (initial implementation). To be split from Product module in future refactoring.
-- **RabbitMQ**: Set up for async event-driven communication (e.g., notification trigger after user creation).
+- **RabbitMQ**: Set up for async event-driven communication (e.g., notification trigger after product is in stock).
 - **Dockerized**: RabbitMQ and app environments containerized.
 
 ## 🛠 In Progress / Planned Modules
