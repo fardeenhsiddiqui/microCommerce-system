@@ -2,6 +2,7 @@ package com.inventoryService.serviceImplementation;
 
 import com.inventoryService.entity.Category;
 import com.inventoryService.entity.Product;
+import com.inventoryService.entity.ProductIndex;
 import com.inventoryService.enums.ProductStatus;
 import com.inventoryService.gateway.publisher.RestockEventPublisher;
 import com.inventoryService.event.ProductRestockedEvent;
@@ -9,6 +10,7 @@ import com.inventoryService.model.product.CreateProductDTO;
 import com.inventoryService.model.product.ProductDTO;
 import com.inventoryService.repository.CategoryRepository;
 import com.inventoryService.repository.ProductRepository;
+import com.inventoryService.repository.ProductSearchRepository;
 import com.inventoryService.service.ProductService;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +25,17 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final RestockEventPublisher eventPublisher;
+    private final ProductSearchRepository productSearchRepository;
 
     public ProductServiceImpl(ProductRepository productRepository,
                           CategoryRepository categoryRepository,
-                          RestockEventPublisher eventPublisher) {
+                          RestockEventPublisher eventPublisher,
+                              ProductSearchRepository productSearchRepository) {
+
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.eventPublisher = eventPublisher;
+        this.productSearchRepository = productSearchRepository;
     }
 
     @Override
@@ -56,6 +62,8 @@ public class ProductServiceImpl implements ProductService {
         product.setCreatedBy("ADMIN");
         product.setCreatedDate(LocalDate.now());
 
+        // Save to Elasticsearch
+        storeDataProductIndex(product);
         // Save product first
 //        Product savedProduct = productRepository.save(product);
 //        // Publish event if stock > 0
@@ -82,6 +90,20 @@ public class ProductServiceImpl implements ProductService {
         }
         product.setStock(newStock);
         return productRepository.save(product);
+    }
+
+    public void storeDataProductIndex(Product product) {
+
+        ProductIndex index = new ProductIndex();
+        index.setId(product.getId().toString());
+        index.setName(product.getName());
+        index.setDescription(product.getDescription());
+        index.setPrice(product.getPrice());
+        productSearchRepository.save(index);
+    }
+
+    public List<ProductIndex> search(String keyword) {
+        return productSearchRepository.findByNameContaining(keyword);
     }
 
 }

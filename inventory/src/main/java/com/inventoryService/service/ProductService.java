@@ -1,6 +1,7 @@
 package com.inventoryService.service;
 
 import com.inventoryService.entity.Product;
+import com.inventoryService.entity.ProductIndex;
 import com.inventoryService.model.product.CreateProductDTO;
 import com.inventoryService.model.product.ProductDTO;
 
@@ -14,4 +15,6 @@ public interface ProductService {
     public Product createProduct(CreateProductDTO dto);
 
     public Product updateStock(UUID productId, Long newStock);
+
+    public List<ProductIndex> search(String keyword);
 }

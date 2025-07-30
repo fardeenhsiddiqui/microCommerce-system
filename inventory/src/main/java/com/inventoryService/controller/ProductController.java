@@ -1,10 +1,12 @@
 package com.inventoryService.controller;
 
 import com.inventoryService.entity.Product;
+import com.inventoryService.entity.ProductIndex;
 import com.inventoryService.model.ApiResponse;
 import com.inventoryService.model.product.CreateProductDTO;
 import com.inventoryService.model.product.ProductDTO;
 import com.inventoryService.model.product.ProductResponseDTO;
+//import com.inventoryService.repository.ProductSearchRepository;
 import com.inventoryService.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -59,4 +61,10 @@ public class ProductController {
     private ProductResponseDTO mapToResponseDTO(Product product){
         return new ProductResponseDTO(product);
     }
+
+    @GetMapping("/search")
+    public List<ProductIndex> search(@RequestParam String query) {
+        return productService.search(query);
+    }
+
 }
