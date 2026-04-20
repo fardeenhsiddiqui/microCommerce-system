@@ -55,7 +55,7 @@ public class CategoryService {
             throw new RuntimeException("No subcategories found for parent ID: " + parentId);
         }
 
-        System.out.println("1......categoryList: " + categoryList.toString());
+        System.out.println("1.2.....categoryList: " + categoryList.toString());
         return categoryList.stream()
                 .map( s -> {
                     MinimalCategoryDTO dto = new MinimalCategoryDTO();
