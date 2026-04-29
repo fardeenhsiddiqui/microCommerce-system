@@ -14,9 +14,11 @@ import com.productServices.repository.ProductSearchRepository;
 import com.productServices.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,12 +28,13 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final RestockEventPublisher eventPublisher;
+
     @Autowired(required = false)
     private ProductSearchRepository productSearchRepository;
 
     public ProductServiceImpl(ProductRepository productRepository,
-                          CategoryRepository categoryRepository,
-                          RestockEventPublisher eventPublisher) {
+                              CategoryRepository categoryRepository,
+                              RestockEventPublisher eventPublisher) {
 
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
@@ -40,13 +43,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
+        return productRepository.findByDeletedDateIsNull().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public Product createProduct(CreateProductDTO dto) {
+
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
 
         Product product = new Product();
         product.setName(dto.getName());
@@ -54,42 +61,72 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(dto.getPrice());
         product.setProductStatus(ProductStatus.ACTIVE);
         product.setStock(dto.getStock() != null ? dto.getStock() : 0L);
-
-        Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-
         product.setCategory(category);
         product.setCreatedBy("ADMIN");
         product.setCreatedDate(LocalDate.now());
 
-        // Save to Elasticsearch
-        storeDataProductIndex(product);
         // Save product first
-//        Product savedProduct = productRepository.save(product);
-//        // Publish event if stock > 0
+        Product savedProduct = productRepository.save(product);
+
+        // Index in Elasticsearch (if enabled)
+        storeDataProductIndex(savedProduct);
+
+        // Optionally publish restock event
 //        if (savedProduct.getStock() > 0) {
 //            eventPublisher.publish(new ProductRestockedEvent(savedProduct.getId(), savedProduct.getName()));
 //        }
 
-        return productRepository.save(product);
-    }
-
-    // Convert Product Entity to ProductDTO
-    private ProductDTO convertToDTO(Product product) {
-        return new ProductDTO(product.getId(), product.getName(), product.getDescription(), product.getPrice());
+        return savedProduct;
     }
 
     @Override
-    public Product updateStock(UUID productId, Long newStock){
+    public Product getProduct(UUID productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
+
+    @Override
+    @Transactional
+    public Product updateStock(UUID productId, Long newStock) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        System.out.println("1......1 " + newStock);
         if (product.getStock() == 0 && newStock > 0) {
             eventPublisher.publish(new ProductRestockedEvent(productId, product.getName()));
         }
         product.setStock(newStock);
         return productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(UUID productId) {
+        Optional<Product> productOpt = productRepository.findById(productId);
+        if (productOpt.isPresent()) {
+            Product product = productOpt.get();
+            product.setDeletedDate(LocalDate.now());
+            product.setDeletedBy("Admin");
+            productRepository.save(product);
+        } else {
+            throw new RuntimeException("Product not found");
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<Product> createProducts(List<CreateProductDTO> dtos) {
+        return dtos.stream()
+                .map(this::createProduct) // reuse single-create logic
+                .collect(Collectors.toList());
+    }
+
+    private ProductDTO convertToDTO(Product product) {
+        return new ProductDTO(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice()
+        );
     }
 
     public void storeDataProductIndex(Product product) {
@@ -111,5 +148,4 @@ public class ProductServiceImpl implements ProductService {
         }
         return productSearchRepository.findByNameContaining(keyword);
     }
-
 }

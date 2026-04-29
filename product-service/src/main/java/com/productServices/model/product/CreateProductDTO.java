@@ -1,5 +1,6 @@
 package com.productServices.model.product;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -13,9 +14,11 @@ public class CreateProductDTO {
     @NotNull
     private String description;
     @NotNull
+    @Min(0)
     private Double price;
     @NotNull
     private UUID categoryId;
+    @Min(0)
     private Long stock;
 
     public CreateProductDTO(String name, String description, Double price, UUID categoryId, Long stock) {
