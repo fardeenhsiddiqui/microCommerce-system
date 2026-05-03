@@ -6,6 +6,7 @@ import com.productServices.model.image.ImageResponseDTO;
 import com.productServices.model.image.ProductImageResponse;
 import com.productServices.model.product.ProductResponseDTO;
 import com.productServices.service.ImageService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -41,10 +42,12 @@ public class ProductImageController {
                 .body(new ApiResponse<>(true, response, null));
     }
 
-    //Not working
-    @GetMapping("/download/{key}")
-    public ResponseEntity<byte[]> download(@PathVariable String key) throws IOException {
+    @GetMapping("/download/**")
+    public ResponseEntity<byte[]> download(HttpServletRequest request) throws IOException {
 
+        String fullPath = request.getRequestURI();
+        // extract key after /download/
+        String key = fullPath.substring(fullPath.indexOf("/download/") + 10);
         ResponseInputStream<GetObjectResponse> s3Object =
                 imageService.downloadFile(key);
 
