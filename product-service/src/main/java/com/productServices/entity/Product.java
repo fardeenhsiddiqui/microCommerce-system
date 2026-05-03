@@ -24,9 +24,10 @@ public class Product implements CatalogComponent{
     private ProductStatus productStatus;
     private Long stock;
 
-    private String mainImageUrl;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     private List<ProductImage> galleryImages = new ArrayList<>();
 
     @ManyToOne
@@ -83,14 +84,6 @@ public class Product implements CatalogComponent{
 
     public void setPrice(Double price) {
         this.price = price;
-    }
-
-    public String getMainImageUrl() {
-        return mainImageUrl;
-    }
-
-    public void setMainImageUrl(String mainImageUrl) {
-        this.mainImageUrl = mainImageUrl;
     }
 
     public List<ProductImage> getGalleryImages() {

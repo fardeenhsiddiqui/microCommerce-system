@@ -27,6 +27,8 @@ public class CategoryService {
             Category parent = categoryRepository.findById(dto.getParentId())
                     .orElseThrow(() -> new RuntimeException("Parent category not found"));
             category.setParent(parent);
+        }else {
+            category.setParent(null);
         }
 
         return categoryRepository.save(category);
