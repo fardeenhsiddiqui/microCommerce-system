@@ -1,7 +1,9 @@
 package com.productServices.model.product;
 
 import com.productServices.entity.Product;
+import com.productServices.model.image.ImageResponseDTO;
 
+import java.util.List;
 import java.util.UUID;
 
 public class ProductResponseDTO {
@@ -11,13 +13,15 @@ public class ProductResponseDTO {
     private final String desc;
     private final Double price;
     private final String categoryName;
+    private final List<ImageResponseDTO> images;
 
-    public ProductResponseDTO(Product product) {
+    public ProductResponseDTO(Product product, List<ImageResponseDTO> images) {
         this.id = product.getId();
         this.name = product.getName();
         this.desc = product.getDescription();
         this.price = product.getPrice();
         this.categoryName = product.getCategory().getName();
+        this.images = images;
     }
 
     public UUID getId() {
@@ -30,6 +34,10 @@ public class ProductResponseDTO {
 
     public String getDesc() {
         return desc;
+    }
+
+    public List<ImageResponseDTO> getImages() {
+        return images;
     }
 
     public Double getPrice() {

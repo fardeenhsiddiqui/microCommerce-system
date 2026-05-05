@@ -2,6 +2,7 @@ package com.productServices.controller;
 
 import com.productServices.entity.Product;
 import com.productServices.model.ApiResponse;
+import com.productServices.model.image.ImageResponseDTO;
 import com.productServices.model.product.CreateProductDTO;
 import com.productServices.model.product.ProductResponseDTO;
 import com.productServices.service.ProductService;
@@ -31,7 +32,7 @@ public class ProductCommandController {
             @Valid @RequestBody CreateProductDTO dto) {
 
         Product product = productService.createProduct(dto);
-        ProductResponseDTO response = new ProductResponseDTO(product);
+        ProductResponseDTO response = convertToDTO(product);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(true, response, null));
     }
@@ -43,7 +44,7 @@ public class ProductCommandController {
 
         List<Product> products = productService.createProducts(dtos);
         List<ProductResponseDTO> result = products.stream()
-                .map(ProductResponseDTO::new)
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(true, result, null));
@@ -56,7 +57,7 @@ public class ProductCommandController {
             @RequestParam Long stock) {
 
         Product product = productService.updateStock(UUID.fromString(productId), stock);
-        ProductResponseDTO response = new ProductResponseDTO(product);
+        ProductResponseDTO response = convertToDTO(product);
         return ResponseEntity.ok(new ApiResponse<>(true, response, null));
     }
 
@@ -66,5 +67,21 @@ public class ProductCommandController {
         productService.deleteProduct(UUID.fromString(productId));
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(new ApiResponse<>(true, null, null));
+    }
+
+    private ProductResponseDTO convertToDTO(Product product) {
+
+        List<ImageResponseDTO> images = product.getGalleryImages().stream()
+                .map(img -> new ImageResponseDTO(
+                        img.getImageUrl(),
+                        img.getLabel(),
+                        img.getAltText()
+                ))
+                .toList();
+
+        return new ProductResponseDTO(
+                product,
+                images
+        );
     }
 }

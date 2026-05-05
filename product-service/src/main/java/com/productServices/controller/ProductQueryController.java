@@ -3,6 +3,7 @@ package com.productServices.controller;
 import com.productServices.entity.Product;
 import com.productServices.entity.ProductIndex;
 import com.productServices.model.ApiResponse;
+import com.productServices.model.image.ImageResponseDTO;
 import com.productServices.model.product.ProductDTO;
 import com.productServices.model.product.ProductResponseDTO;
 import com.productServices.service.ProductService;
@@ -35,7 +36,7 @@ public class ProductQueryController {
     @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> getProduct(@PathVariable String productId) {
         Product product = productService.getProduct(UUID.fromString(productId));
-        ProductResponseDTO response = new ProductResponseDTO(product);
+        ProductResponseDTO response = convertToDTO(product);
         return ResponseEntity.ok(new ApiResponse<>(true, response, null));
     }
 
@@ -44,5 +45,21 @@ public class ProductQueryController {
     public ResponseEntity<List<ProductIndex>> search(@RequestParam String query) {
         List<ProductIndex> results = productService.search(query);
         return ResponseEntity.ok(results);
+    }
+
+    private ProductResponseDTO convertToDTO(Product product) {
+
+        List<ImageResponseDTO> images = product.getGalleryImages().stream()
+                .map(img -> new ImageResponseDTO(
+                        img.getImageUrl(),
+                        img.getLabel(),
+                        img.getAltText()
+                ))
+                .toList();
+
+        return new ProductResponseDTO(
+                product,
+                images
+        );
     }
 }
