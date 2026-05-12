@@ -16,4 +16,5 @@ public interface ImageService {
 
     public ResponseInputStream<GetObjectResponse> downloadFile(String key);
 
+    public String extractKeyFromUrl(String imageUrl);
 }

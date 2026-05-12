@@ -46,7 +46,7 @@ public class ProductImageUploadController {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Image not found"));
 
-        String key = extractKeyFromUrl(image.getImageUrl());
+        String key = imageService.extractKeyFromUrl(image.getImageUrl());
 
         return presignedService.generateDownloadUrl(key);
     }
@@ -60,7 +60,4 @@ public class ProductImageUploadController {
         return ResponseEntity.ok("Image saved successfully");
     }
 
-    private String extractKeyFromUrl(String url) {
-        return url.substring(url.indexOf(".com/") + 5);
-    }
 }

@@ -67,7 +67,12 @@ public class ImageServiceImp implements ImageService {
 
         product.getGalleryImages().add(image);
 
-        return productRepository.save(product);
+        try {
+            return productRepository.save(product);
+        } catch (Exception e) {
+            s3Client.deleteObject(b -> b.bucket(bucket).key(key));
+            throw e;
+        }
     }
 
     @Transactional
@@ -88,8 +93,12 @@ public class ImageServiceImp implements ImageService {
         image.setCreatedBy("ADMIN");
 
         product.getGalleryImages().add(image);
-
-        productRepository.save(product);
+        try {
+            productRepository.save(product);
+        } catch (Exception e) {
+            s3Client.deleteObject(b -> b.bucket(bucket).key(request.key()));
+            throw e;
+        }
     }
 
     // Download
@@ -101,5 +110,29 @@ public class ImageServiceImp implements ImageService {
                 .build();
 
         return s3Client.getObject(request);
+    }
+
+    @Transactional
+    public void deleteImage(UUID productId, UUID imageId) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow();
+
+        ProductImage image = product.getGalleryImages().stream()
+                .filter(i -> i.getId().equals(imageId))
+                .findFirst()
+                .orElseThrow();
+
+        String key = extractKeyFromUrl(image.getImageUrl());
+
+        s3Client.deleteObject(b -> b.bucket(bucket).key(key));
+
+        product.getGalleryImages().remove(image);
+        productRepository.save(product);
+    }
+
+    @Override
+    public String extractKeyFromUrl(String url) {
+        return url.substring(url.indexOf(".com/") + 5);
     }
 }
