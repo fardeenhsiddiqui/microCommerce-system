@@ -8,6 +8,6 @@ public class HealthController {
 
     @GetMapping("e-com")
     public String helloWorld(){
-        return "Fardeen is Here";
+        return "User Service";
     }
 }
