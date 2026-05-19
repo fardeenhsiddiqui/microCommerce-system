@@ -1,6 +1,9 @@
 package com.userService.user.dto;
 
-import com.userService.user.Users;
+import com.userService.address.dto.AddressResponseDTO;
+import com.userService.user.User;
+
+import java.util.List;
 
 public class UserResponseDTO {
 
@@ -8,12 +11,16 @@ public class UserResponseDTO {
     private final String firstName;
     private final String lastName;
     private final String email;
+    private final String role;
+//    List<AddressResponseDTO> addressResponseDTOList;
 
-    public UserResponseDTO(Users user) {
+    public UserResponseDTO(User user) {
         this.userName = user.getUserName();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
+//        this.addressResponseDTOList = user.getAddresses();
+        this.role = user.getRole().toString();
     }
 
     public String getFirstName() {
@@ -30,5 +37,9 @@ public class UserResponseDTO {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getRole() {
+        return role;
     }
 }

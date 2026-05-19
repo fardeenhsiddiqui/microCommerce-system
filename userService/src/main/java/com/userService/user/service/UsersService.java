@@ -1,5 +1,6 @@
-package com.userService.user;
+package com.userService.user.service;
 
+import com.userService.user.User;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.repository.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -18,21 +19,6 @@ public class UsersService {
     public UsersService(UserRepository userRepository, PasswordEncoder passwordEncoder){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    public Users createUser(CreateUserDTO dto){
-        Users user = new Users();
-        user.setUserName(dto.getUserName());
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setEmail(dto.getEmail());
-        user.setRole(dto.getRole());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-
-        user.setCreatedBy("ADMIN");
-        user.setCreatedDate(LocalDateTime.now());
-
-        return userRepository.save(user);
     }
 
     public void updateUser(){

@@ -2,11 +2,12 @@ package com.userService.auth;
 
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
-import com.userService.user.Users;
+import com.userService.auth.service.AuthService;
+import com.userService.user.User;
 import com.userService.common.response.ApiResponse;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.dto.UserResponseDTO;
-import com.userService.user.UsersService;
+import com.userService.user.service.UsersService;
 import com.userService.common.utils.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,49 +22,37 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.security.auth.login.AccountLockedException;
+
 @RestController
 @RequestMapping("/auth/user")
 public class AuthController {
 
-    private final JwtUtil jwtUtil;
-    private final UsersService usersService;
+    private final AuthService authService;
 
     @Autowired
-    public AuthController(JwtUtil jwtUtil, UsersService usersService) {
-        this.jwtUtil = jwtUtil;
-        this.usersService = usersService;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
     @Autowired
     private AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody CreateUserDTO dto){
-        try{
-            Users user = usersService.createUser(dto);
-            UserResponseDTO response = mapToResponseDTO(user);
-            return ResponseEntity.status(HttpStatus.OK).
-                    body(new ApiResponse<>(true, response,null));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(false, null, e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse<UserResponseDTO>> register(@Valid @RequestBody CreateUserDTO dto){
+
+        UserResponseDTO response = authService.register(dto);;
+        return ResponseEntity.status(HttpStatus.OK).
+                body(new ApiResponse<>(true, response,null));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponseDTO> login(@RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<ApiResponse<JwtResponseDTO>> login(@RequestBody LoginRequestDTO dto) throws AccountLockedException {
 
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.userName(), dto.password())
+        JwtResponseDTO response = authService.login(dto);
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, response, null)
         );
-        System.out.println("1...... 1 " + auth.getCredentials());
-        UserDetails user = (UserDetails) auth.getPrincipal();
-        System.out.println("1...... 2 " + user);
-        String token = jwtUtil.generateToken(user);
-        System.out.println("1...... 3 " + token);
-        return ResponseEntity.ok(new JwtResponseDTO(token));
     }
 
-    private UserResponseDTO mapToResponseDTO(Users user){
-        return new UserResponseDTO(user);
-    }
+
 }

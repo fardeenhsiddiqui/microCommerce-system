@@ -3,7 +3,10 @@ package com.userService.user;
 import com.userService.common.response.ApiResponse;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.dto.UserResponseDTO;
+import com.userService.user.service.UsersService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,24 +16,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/user/")
 public class UsersController {
 
-    @Autowired
-    UsersService usersService;
+    private static final Logger log = LoggerFactory.getLogger(UsersController.class);
+    private final UsersService usersService;
 
-    @PostMapping("addUser")
-    public ResponseEntity<ApiResponse<UserResponseDTO>> addUser(@Valid @RequestBody CreateUserDTO dto){
-            System.out.println("1........1");
-            Users user = usersService.createUser(dto);
-            UserResponseDTO response = mapToResponseDTO(user);
-            return ResponseEntity.status(HttpStatus.OK).
-                    body(new ApiResponse<>(true, response,null));
-
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<>(false, null, e.getMessage()));
-
-
+    public UsersController(UsersService usersService) {
+        this.usersService = usersService;
     }
 
-    private UserResponseDTO mapToResponseDTO(Users user){
+    private UserResponseDTO mapToResponseDTO(User user){
         return new UserResponseDTO(user);
     }
 }
