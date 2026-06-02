@@ -1,4 +1,4 @@
 package com.userService.auth.dto;
 
-public class TokenResponse {
+public class TokenResponse1 {
 }

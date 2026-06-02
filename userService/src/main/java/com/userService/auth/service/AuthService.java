@@ -2,10 +2,12 @@ package com.userService.auth.service;
 
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
-import com.userService.auth.dto.TokenResponse;
 import com.userService.common.exception.AccountLockedException;
 import com.userService.common.exception.UserAlreadyExistsException;
 import com.userService.common.utils.JwtUtil;
+import com.userService.refreshToken.RefreshToken;
+import com.userService.refreshToken.dto.TokenResponse;
+import com.userService.refreshToken.service.RefreshTokenService;
 import com.userService.user.User;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.dto.UserResponseDTO;
@@ -26,47 +28,40 @@ public class AuthService implements IAuthService{
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-//    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.refreshTokenService = refreshTokenService;
     }
 
+    // Authenticate user credentials and create session tokens
     @Override
     public JwtResponseDTO login(LoginRequestDTO request) {
 
         Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(
                                 request.userName(),
-                                request.password()
-                        )
-                );
+                                request.password()));
 
-        UserDetails userDetails =
-                (UserDetails) authentication.getPrincipal();
-
-        User user = userRepository
-                .findByUserName(userDetails.getUsername());
-
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User user = userRepository.findByUserName(userDetails.getUsername());
         if(user.getAccountLocked()) {
             throw new AccountLockedException(
-                    "Account is locked"
-            );
+                    "Account is locked");
         }
-        String accessToken =
-                jwtUtil.generateAccessToken(user);
-
-        String refreshToken =
-                jwtUtil.generateRefreshToken(user);
+        String accessToken = jwtUtil.generateAccessToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+//        String refreshToken = jwtUtil.generateRefreshToken(user);
         user.setLastLoginAt(LocalDateTime.now());
         //Failed Login Reset
 //        user.setFailedLoginAttempts(0);
         return new JwtResponseDTO(
                 accessToken,
-                refreshToken
+                refreshToken.getToken()
         );
     }
 
@@ -76,9 +71,7 @@ public class AuthService implements IAuthService{
 
         validateDuplicateUser(dto);
 
-
         User user = mapToEntity(dto);
-
         user.setRole(Role.CUSTOMER);
         user.setActive(true);
         user.setEmailVerified(false);
@@ -92,9 +85,15 @@ public class AuthService implements IAuthService{
         return mapToResponseDTO(savedUser);
     }
 
+    // Generate a new access token using an active session
     @Override
-    public TokenResponse refreshToken(String refreshToken) {
-        return null;
+    public TokenResponse refreshToken(String token) {
+
+        RefreshToken refreshToken = refreshTokenService.validateRefreshToken(token);
+        User user = refreshToken.getUser();
+        String accessToken = jwtUtil.generateAccessToken(user);
+
+        return new TokenResponse(accessToken, token);
     }
 
     private UserResponseDTO mapToResponseDTO(User user){
@@ -110,7 +109,6 @@ public class AuthService implements IAuthService{
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setEmail(normalizedEmail);
-
         return user;
     }
 
@@ -126,5 +124,16 @@ public class AuthService implements IAuthService{
                     "Username already taken"
             );
         }
+    }
+
+    // Terminate the current authenticated session
+    @Override
+    @Transactional
+    public void logout(
+            String refreshToken
+    ) {
+
+        refreshTokenService
+                .revokeToken(refreshToken);
     }
 }

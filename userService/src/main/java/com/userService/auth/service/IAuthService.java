@@ -3,7 +3,7 @@ package com.userService.auth.service;
 
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
-import com.userService.auth.dto.TokenResponse;
+import com.userService.refreshToken.dto.TokenResponse;
 import com.userService.user.User;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.dto.UserResponseDTO;
@@ -17,5 +17,7 @@ public interface IAuthService {
     UserResponseDTO register(CreateUserDTO request);
 
     TokenResponse refreshToken(String refreshToken);
+
+    void logout(String refreshToken);
 
 }

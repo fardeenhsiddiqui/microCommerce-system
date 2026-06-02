@@ -3,6 +3,8 @@ package com.userService.auth;
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
 import com.userService.auth.service.AuthService;
+import com.userService.refreshToken.dto.RefreshTokenRequest;
+import com.userService.refreshToken.dto.TokenResponse;
 import com.userService.user.User;
 import com.userService.common.response.ApiResponse;
 import com.userService.user.dto.CreateUserDTO;
@@ -46,13 +48,29 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<JwtResponseDTO>> login(@RequestBody LoginRequestDTO dto) throws AccountLockedException {
+    public ResponseEntity<ApiResponse<JwtResponseDTO>> login(@RequestBody LoginRequestDTO dto) {
 
         JwtResponseDTO response = authService.login(dto);
-        return ResponseEntity.ok(
-                new ApiResponse<>(true, response, null)
-        );
+        return ResponseEntity.ok(new ApiResponse<>(true, response, null));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
+
+        TokenResponse response = authService.refreshToken(request.refreshToken());
+        return ResponseEntity.ok(new ApiResponse<>(true, response, null));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody RefreshTokenRequest request) {
+
+        authService.logout(request.refreshToken());
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Logged out",
+                        null
+                ));
+    }
 
 }

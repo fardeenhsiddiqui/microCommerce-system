@@ -41,6 +41,7 @@ public class JwtUtil {
                 .compact();
     }
 
+    // Create short-lived token used for API authorization
     public String generateAccessToken(User user) {
 
         Map<String, Object> claims = new HashMap<>();
