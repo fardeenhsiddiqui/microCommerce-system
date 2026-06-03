@@ -13,6 +13,8 @@ import jakarta.persistence.*;
 
 import java.util.UUID;
 
+@Entity
+@Table(name ="address")
 public class Address extends BaseEntity {
 
     @Id

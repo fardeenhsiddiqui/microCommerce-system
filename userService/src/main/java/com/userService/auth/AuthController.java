@@ -27,17 +27,16 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.security.auth.login.AccountLockedException;
 
 @RestController
-@RequestMapping("/auth/user")
+@RequestMapping("/api/user/oauth")
 public class AuthController {
 
     private final AuthService authService;
-
     @Autowired
+    private AuthenticationManager authenticationManager;
+
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponseDTO>> register(@Valid @RequestBody CreateUserDTO dto){

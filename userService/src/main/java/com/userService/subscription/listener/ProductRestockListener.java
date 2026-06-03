@@ -5,9 +5,14 @@ import com.userService.subscription.dto.ProductRestockedEvent;
 import com.userService.subscription.SubscriptionService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(
+        name = "rabbitmq.enabled",
+        havingValue = "true"
+)
 public class ProductRestockListener {
 
     @Autowired
