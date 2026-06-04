@@ -12,7 +12,7 @@ import javax.security.auth.login.AccountLockedException;
 
 public interface IAuthService {
 
-    JwtResponseDTO login(LoginRequestDTO request) throws AccountLockedException;
+    JwtResponseDTO login(LoginRequestDTO request);
 
     UserResponseDTO register(CreateUserDTO request);
 

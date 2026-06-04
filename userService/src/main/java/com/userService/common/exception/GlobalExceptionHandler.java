@@ -127,6 +127,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(TokenNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleTokenNotFound(
+            TokenNotFoundException ex) {
+
+        ApiResponse<Object> response =
+                new ApiResponse<>(false, null, ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
 

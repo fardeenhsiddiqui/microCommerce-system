@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class CustomUserService implements UserDetailsService {
 
@@ -24,13 +26,14 @@ public class CustomUserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Loading user by username: {}", username);
-        User user = userRepository.findByUserName(username);
+        Optional<User> optionalUser = userRepository.findByEmail(username);
 
-        if (user == null) {
+        if (optionalUser.isEmpty()) {
             throw new UsernameNotFoundException(
                     "User not found with username: " + username
             );
         }
+        User user = optionalUser.get();
 
         if (!Boolean.TRUE.equals(user.getActive())) {
             throw new DisabledException("User account is disabled");

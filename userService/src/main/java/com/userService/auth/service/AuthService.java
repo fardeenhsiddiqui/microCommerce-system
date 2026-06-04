@@ -3,8 +3,11 @@ package com.userService.auth.service;
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
 import com.userService.common.exception.AccountLockedException;
+import com.userService.common.exception.TokenNotFoundException;
 import com.userService.common.exception.UserAlreadyExistsException;
+import com.userService.common.exception.UserNotFoundException;
 import com.userService.common.utils.JwtUtil;
+import com.userService.emailVerificationToken.service.IEmailVerificationService;
 import com.userService.refreshToken.RefreshToken;
 import com.userService.refreshToken.dto.TokenResponse;
 import com.userService.refreshToken.service.RefreshTokenService;
@@ -22,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class AuthService implements IAuthService{
@@ -31,13 +35,15 @@ public class AuthService implements IAuthService{
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
+    private final IEmailVerificationService emailVerificationService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, IEmailVerificationService emailVerificationService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     // Authenticate user credentials and create session tokens
@@ -46,11 +52,13 @@ public class AuthService implements IAuthService{
 
         Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(
-                                request.userName(),
+                                request.email(),
                                 request.password()));
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUserName(userDetails.getUsername());
+        User user = userRepository.findByUserName(userDetails.getUsername())
+                .orElseThrow( () -> new UserNotFoundException("User Not Found"));
+
         if(user.getAccountLocked()) {
             throw new AccountLockedException(
                     "Account is locked");
@@ -84,6 +92,8 @@ public class AuthService implements IAuthService{
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         User savedUser = userRepository.save(user);
+        // Trigger email verification workflow
+        emailVerificationService.createVerificationToken(savedUser);
         return mapToResponseDTO(savedUser);
     }
 
@@ -131,11 +141,7 @@ public class AuthService implements IAuthService{
     // Terminate the current authenticated session
     @Override
     @Transactional
-    public void logout(
-            String refreshToken
-    ) {
-
-        refreshTokenService
-                .revokeToken(refreshToken);
+    public void logout(String refreshToken) {
+        refreshTokenService.revokeToken(refreshToken);
     }
 }

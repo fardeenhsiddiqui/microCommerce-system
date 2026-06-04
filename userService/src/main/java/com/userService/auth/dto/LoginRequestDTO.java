@@ -1,4 +1,4 @@
 package com.userService.auth.dto;
 
-public record LoginRequestDTO(String userName, String password) {
+public record LoginRequestDTO(String email, String password) {
 }

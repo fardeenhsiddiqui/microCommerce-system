@@ -2,40 +2,34 @@ package com.userService.auth;
 
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
-import com.userService.auth.service.AuthService;
+import com.userService.auth.service.IAuthService;
+import com.userService.emailVerificationToken.dto.ResendVerificationRequest;
+import com.userService.emailVerificationToken.service.IEmailVerificationService;
 import com.userService.refreshToken.dto.RefreshTokenRequest;
 import com.userService.refreshToken.dto.TokenResponse;
-import com.userService.user.User;
 import com.userService.common.response.ApiResponse;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.dto.UserResponseDTO;
-import com.userService.user.service.UsersService;
-import com.userService.common.utils.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.security.auth.login.AccountLockedException;
 
 @RestController
 @RequestMapping("/api/user/oauth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final IAuthService authService;
+    private final IEmailVerificationService emailVerificationService;
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    public AuthController(AuthService authService) {
+    public AuthController(IAuthService authService, IEmailVerificationService emailVerificationService) {
         this.authService = authService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @PostMapping("/register")
@@ -70,6 +64,30 @@ public class AuthController {
                         "Logged out",
                         null
                 ));
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam String token) {
+
+        emailVerificationService.verifyEmail(token);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Email verified successfully",
+                        null)
+        );
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<ApiResponse<String>> resendVerification(@RequestBody ResendVerificationRequest request) {
+
+        emailVerificationService.resendVerification(request.email());
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Verification email sent",
+                        null)
+        );
     }
 
 }
