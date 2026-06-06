@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -35,6 +36,7 @@ public class RefreshTokenService implements IRefreshTokenService{
     }
 
     // Verify that the session token is valid and not revoked
+    // Verify that the user session is still active
     @Override
     public RefreshToken validateRefreshToken(String token) {
 
@@ -69,8 +71,14 @@ public class RefreshTokenService implements IRefreshTokenService{
         refreshTokenRepository.save(refreshToken);
     }
 
+    // Force all active sessions to re-authenticate
     @Override
     public void revokeUserTokens(User user) {
 
+        List<RefreshToken> tokens = refreshTokenRepository.findByUser(user);
+
+        tokens.forEach(token -> token.setRevoked(true));
+
+        refreshTokenRepository.saveAll(tokens);
     }
 }

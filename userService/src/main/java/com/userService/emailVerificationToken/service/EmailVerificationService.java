@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-public class EmailVerificationService implements IEmailVerificationService{
+public class EmailVerificationService {
 
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final UserRepository userRepository;
@@ -22,8 +22,6 @@ public class EmailVerificationService implements IEmailVerificationService{
         this.userRepository = userRepository;
     }
 
-
-    @Override
     public EmailVerificationToken createVerificationToken(User user) {
 
         emailVerificationTokenRepository.deleteByUser(user);
@@ -36,12 +34,11 @@ public class EmailVerificationService implements IEmailVerificationService{
 
         EmailVerificationToken saved = emailVerificationTokenRepository.save(token);
 
-        // publish RabbitMQ event here
+        // publish RabbitMQ event here to send url for verification
 
         return saved;
     }
 
-    @Override
     public void verifyEmail(String token) {
 
         EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token)
@@ -63,7 +60,6 @@ public class EmailVerificationService implements IEmailVerificationService{
         emailVerificationTokenRepository.save(verificationToken);
     }
 
-    @Override
     public void resendVerification(String email) {
 
         User user = userRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException("Email I'd not found"));

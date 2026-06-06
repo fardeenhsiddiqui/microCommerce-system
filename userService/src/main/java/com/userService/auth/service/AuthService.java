@@ -3,11 +3,10 @@ package com.userService.auth.service;
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
 import com.userService.common.exception.AccountLockedException;
-import com.userService.common.exception.TokenNotFoundException;
 import com.userService.common.exception.UserAlreadyExistsException;
 import com.userService.common.exception.UserNotFoundException;
 import com.userService.common.utils.JwtUtil;
-import com.userService.emailVerificationToken.service.IEmailVerificationService;
+import com.userService.emailVerificationToken.service.EmailVerificationService;
 import com.userService.refreshToken.RefreshToken;
 import com.userService.refreshToken.dto.TokenResponse;
 import com.userService.refreshToken.service.RefreshTokenService;
@@ -25,7 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class AuthService implements IAuthService{
@@ -35,9 +33,9 @@ public class AuthService implements IAuthService{
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
-    private final IEmailVerificationService emailVerificationService;
+    private final EmailVerificationService emailVerificationService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, IEmailVerificationService emailVerificationService){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, EmailVerificationService emailVerificationService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -60,15 +58,14 @@ public class AuthService implements IAuthService{
                 .orElseThrow( () -> new UserNotFoundException("User Not Found"));
 
         if(user.getAccountLocked()) {
-            throw new AccountLockedException(
-                    "Account is locked");
+            throw new AccountLockedException("Account is locked");
         }
         String accessToken = jwtUtil.generateAccessToken(user);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
-//        String refreshToken = jwtUtil.generateRefreshToken(user);
+//      String refreshToken = jwtUtil.generateRefreshToken(user);
         user.setLastLoginAt(LocalDateTime.now());
         //Failed Login Reset
-//        user.setFailedLoginAttempts(0);
+        user.setFailedLoginAttempts(0);
         return new JwtResponseDTO(
                 accessToken,
                 refreshToken.getToken()

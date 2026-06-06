@@ -58,8 +58,11 @@ public abstract class BaseEntity {
         this.updatedBy = updatedBy;
     }
 
-    //Should deletedBy and deletedDate be in BaseEntity?
-//    Short answer:
-//    YES — if your system uses soft delete consistently.
-//    NO — if only some entities support deletion tracking.
+    /*
+    Should deletedBy and deletedDate be in BaseEntity?
+    Short answer:
+    YES — if your system uses soft delete consistently.
+    NO — if only some entities support deletion tracking.
+
+     */
 }
