@@ -1,0 +1,28 @@
+package com.notificationService;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class NotificationServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(NotificationServiceApplication.class, args);
+	}
+
+}
+
+/*
+notification-service
+
+├── config
+├── controller
+├── dto
+├── entity
+├── repository
+├── service
+├── event
+├── listener
+├── exception
+└── util
+ */
