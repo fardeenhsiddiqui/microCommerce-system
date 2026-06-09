@@ -11,18 +11,3 @@ public class NotificationServiceApplication {
 	}
 
 }
-
-/*
-notification-service
-
-├── config
-├── controller
-├── dto
-├── entity
-├── repository
-├── service
-├── event
-├── listener
-├── exception
-└── util
- */
