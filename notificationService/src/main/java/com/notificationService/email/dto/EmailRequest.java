@@ -1,6 +1,17 @@
 package com.notificationService.email.dto;
 
-public record EmailRequest(String to,
-                           String subject,
-                           String body) {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record EmailRequest(
+        @NotBlank
+        @Email
+        String to,
+
+        @NotBlank
+        String subject,
+
+        @NotBlank
+        String body
+) {
 }
