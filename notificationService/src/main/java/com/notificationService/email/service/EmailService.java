@@ -22,15 +22,15 @@ public class EmailService implements IEmailService{
     }
 
     @Override
-    public void sendEmail(EmailRequest emailRequest) {
+    public void sendEmail(String to, String subject, String body) {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(sender);
-        message.setTo(emailRequest.to());
-        message.setSubject(emailRequest.subject());
-        message.setText(emailRequest.body());
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(body);
 
-        log.info("Sending email to {}", emailRequest.to());
+        log.info("Sending email to {}", to);
         mailSender.send(message);
         log.info("Email sent successfully");
     }

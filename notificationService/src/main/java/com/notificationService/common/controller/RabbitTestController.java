@@ -1,7 +1,7 @@
 package com.notificationService.common.controller;
 
 
-import com.notificationService.common.event.TestEvent;
+import com.notificationService.common.event.SendEmailEvent;
 import com.notificationService.common.publisher.NotificationPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +21,7 @@ public class RabbitTestController {
     @PostMapping("/test")
     public ResponseEntity<String> publish() {
 
-        publisher.publish(new TestEvent("Hello RabbitMQ"));
+//        publisher.publish(new SendEmailEvent("Hello RabbitMQ"));
         return ResponseEntity.ok("Message Published");
     }
 }

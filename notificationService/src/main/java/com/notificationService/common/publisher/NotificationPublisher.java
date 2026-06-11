@@ -1,7 +1,7 @@
 package com.notificationService.common.publisher;
 
 import com.notificationService.common.constants.RabbitMQConstants;
-import com.notificationService.common.event.TestEvent;
+import com.notificationService.common.event.SendEmailEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ public class NotificationPublisher {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void publish(TestEvent event) {
+    public void publish(SendEmailEvent event) {
         rabbitTemplate.convertAndSend(
                 RabbitMQConstants.EMAIL_EXCHANGE,
                 RabbitMQConstants.EMAIL_ROUTING_KEY,
