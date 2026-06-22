@@ -1,7 +1,8 @@
 package com.userService.subscription.listener;
 
 import com.userService.common.config.RabbitMQConfig;
-import com.userService.subscription.dto.ProductRestockedEvent;
+import com.userService.common.constants.RabbitMQConstants;
+import com.userService.subscription.event.ProductRestockedEvent;
 import com.userService.subscription.SubscriptionService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class ProductRestockListener {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    @RabbitListener(queues = RabbitMQConfig.PRODUCT_RESTOCKED_QUEUE)
+    @RabbitListener(queues = RabbitMQConstants.PRODUCT_RESTOCKED_QUEUE)
     public void handleRestock(ProductRestockedEvent event){
 
         System.out.println("1......." + event.getProductName() + " " + event.getProductId());

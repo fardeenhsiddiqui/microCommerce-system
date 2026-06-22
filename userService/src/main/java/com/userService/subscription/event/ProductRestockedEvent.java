@@ -1,4 +1,4 @@
-package com.userService.subscription.dto;
+package com.userService.subscription.event;
 
 import java.util.UUID;
 

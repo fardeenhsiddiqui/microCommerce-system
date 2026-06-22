@@ -1,5 +1,6 @@
 package com.userService.common.config;
 
+import com.userService.common.constants.RabbitMQConstants;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -11,11 +12,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String PRODUCT_RESTOCKED_QUEUE = "product.restock";
+//    public static final String PRODUCT_RESTOCKED_QUEUE = "product.restock";
 
     @Bean
     public Queue queue() {
-        return new Queue(PRODUCT_RESTOCKED_QUEUE);
+        return new Queue(RabbitMQConstants.PRODUCT_RESTOCKED_QUEUE);
     }
 
     @Bean

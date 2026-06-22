@@ -14,6 +14,8 @@ import com.userService.user.User;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.dto.UserResponseDTO;
 import com.userService.user.enums.Role;
+import com.userService.user.event.UserRegisteredEvent;
+import com.userService.user.publisher.UserEventPublisher;
 import com.userService.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,14 +36,16 @@ public class AuthService implements IAuthService{
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final EmailVerificationService emailVerificationService;
+    private final UserEventPublisher userEventPublisher;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, EmailVerificationService emailVerificationService){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, EmailVerificationService emailVerificationService, UserEventPublisher userEventPublisher){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
         this.emailVerificationService = emailVerificationService;
+        this.userEventPublisher = userEventPublisher;
     }
 
     // Authenticate user credentials and create session tokens
@@ -90,6 +94,9 @@ public class AuthService implements IAuthService{
 
         User savedUser = userRepository.save(user);
         // Trigger email verification workflow
+        userEventPublisher.publishedUserRegisteredEvent(new UserRegisteredEvent(
+                savedUser.getId(), savedUser.getFirstName(), savedUser.getEmail()
+        ));
         emailVerificationService.createVerificationToken(savedUser);
         return mapToResponseDTO(savedUser);
     }

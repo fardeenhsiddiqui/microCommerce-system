@@ -10,10 +10,12 @@ import com.userService.user.User;
 import com.userService.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Service
 public class PasswordResetService {
 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
