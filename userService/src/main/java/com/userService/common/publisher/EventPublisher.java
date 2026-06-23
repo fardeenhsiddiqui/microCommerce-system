@@ -1,26 +1,24 @@
-package com.userService.user.publisher;
+package com.userService.common.publisher;
 
 import com.userService.common.constants.RabbitMQConstants;
-import com.userService.user.event.UserRegisteredEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserEventPublisher {
+public class EventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
-
-    public UserEventPublisher(RabbitTemplate rabbitTemplate) {
+    public EventPublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void publishedUserRegisteredEvent(UserRegisteredEvent userRegisteredEvent) {
+    public void publish(String routingKey,Object event) {
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConstants.NOTIFICATION_EXCHANGE,
-                RabbitMQConstants.EMAIL_ROUTING_KEY,
-                userRegisteredEvent
+                routingKey,
+                event
         );
     }
 }

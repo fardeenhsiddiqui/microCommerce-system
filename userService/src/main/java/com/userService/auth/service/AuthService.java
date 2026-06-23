@@ -2,9 +2,13 @@ package com.userService.auth.service;
 
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
+import com.userService.common.constants.EmailContentType;
+import com.userService.common.constants.RabbitMQConstants;
+import com.userService.common.event.SendEmailEvent;
 import com.userService.common.exception.AccountLockedException;
 import com.userService.common.exception.UserAlreadyExistsException;
 import com.userService.common.exception.UserNotFoundException;
+import com.userService.common.publisher.EventPublisher;
 import com.userService.common.utils.JwtUtil;
 import com.userService.emailVerificationToken.service.EmailVerificationService;
 import com.userService.refreshToken.RefreshToken;
@@ -37,8 +41,9 @@ public class AuthService implements IAuthService{
     private final RefreshTokenService refreshTokenService;
     private final EmailVerificationService emailVerificationService;
     private final UserEventPublisher userEventPublisher;
+    private final EventPublisher publisher;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, EmailVerificationService emailVerificationService, UserEventPublisher userEventPublisher){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, EmailVerificationService emailVerificationService, UserEventPublisher userEventPublisher, EventPublisher publisher){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -46,6 +51,7 @@ public class AuthService implements IAuthService{
         this.refreshTokenService = refreshTokenService;
         this.emailVerificationService = emailVerificationService;
         this.userEventPublisher = userEventPublisher;
+        this.publisher = publisher;
     }
 
     // Authenticate user credentials and create session tokens
@@ -94,9 +100,15 @@ public class AuthService implements IAuthService{
 
         User savedUser = userRepository.save(user);
         // Trigger email verification workflow
-        userEventPublisher.publishedUserRegisteredEvent(new UserRegisteredEvent(
-                savedUser.getId(), savedUser.getFirstName(), savedUser.getEmail()
-        ));
+        publisher.publish(
+                RabbitMQConstants.EMAIL_ROUTING_KEY,
+                new SendEmailEvent(
+                        savedUser.getEmail(),
+                        "Welcome to E-Commerce",
+                        buildWelcomeBody(savedUser),
+                        EmailContentType.TEXT
+                )
+        );
         emailVerificationService.createVerificationToken(savedUser);
         return mapToResponseDTO(savedUser);
     }
@@ -147,5 +159,19 @@ public class AuthService implements IAuthService{
     @Transactional
     public void logout(String refreshToken) {
         refreshTokenService.revokeToken(refreshToken);
+    }
+
+    private String buildWelcomeBody(User user){
+
+        return """
+            Hello %s,
+            Welcome to E-Commerce!
+            Your account has been successfully created.
+            Start exploring products and enjoy your shopping experience.
+            Regards,
+            E-Commerce Team
+            """
+                .formatted(user.getFirstName());
+
     }
 }

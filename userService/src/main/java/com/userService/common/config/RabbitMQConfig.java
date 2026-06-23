@@ -12,8 +12,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-//    public static final String PRODUCT_RESTOCKED_QUEUE = "product.restock";
-
     @Bean
     public Queue queue() {
         return new Queue(RabbitMQConstants.PRODUCT_RESTOCKED_QUEUE);

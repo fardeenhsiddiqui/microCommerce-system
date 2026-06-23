@@ -11,8 +11,9 @@ public class RabbitMQConstants {
 
     //Routing Key
     public static final String USER_REGISTERED_ROUTING_KEY = "email.user.registered";
+    public static final String EMAIL_VERIFICATION_ROUTING_KEY = "email.verification";
 
 //    public static final String EMAIL_QUEUE = "email.queue";
 //
-//    public static final String EMAIL_ROUTING_KEY = "email.send";
+    public static final String EMAIL_ROUTING_KEY = "email.send";
 }

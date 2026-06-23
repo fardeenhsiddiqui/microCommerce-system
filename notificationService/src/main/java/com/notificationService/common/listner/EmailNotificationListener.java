@@ -19,12 +19,12 @@ import java.time.LocalDateTime;
         name = "rabbitmq.enabled",
         havingValue = "true"
 )
-public class NotificationListener {
+public class EmailNotificationListener {
 
     private final IEmailService emailService;
     private final INotificationService notificationService;
 
-    public NotificationListener(IEmailService emailService, INotificationService notificationService) {
+    public EmailNotificationListener(IEmailService emailService, INotificationService notificationService) {
         this.emailService = emailService;
         this.notificationService = notificationService;
     }
@@ -38,7 +38,11 @@ public class NotificationListener {
         notification = notificationService.save(notification);
 
         try{
-            emailService.sendEmail(event.to(), event.subject(), event.body());
+            emailService.sendEmail(
+                    event.to(),
+                    event.subject(),
+                    event.body()
+            );
             notification.setStatus(NotificationStatus.SENT);
             notification.setSentAt(LocalDateTime.now());
 
