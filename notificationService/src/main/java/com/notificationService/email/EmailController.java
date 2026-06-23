@@ -24,7 +24,7 @@ public class EmailController {
     public ResponseEntity<String> emailSender(@Valid @RequestBody EmailRequest emailRequest) {
 
 //        emailService.sendEmail(emailRequest.to(), emailRequest.subject(), emailRequest.body());
-        publisher.publish(new SendEmailEvent(emailRequest.to(), emailRequest.subject(), emailRequest.body()));
+//        publisher.publish(new SendEmailEvent(emailRequest.to(), emailRequest.subject(), emailRequest.body()));
         return ResponseEntity.ok("Email Request Accepted");
     }
 }

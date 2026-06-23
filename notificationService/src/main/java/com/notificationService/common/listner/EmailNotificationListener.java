@@ -1,8 +1,8 @@
 package com.notificationService.common.listner;
 
+import com.notificationService.common.constants.EmailContentType;
 import com.notificationService.common.constants.RabbitMQConstants;
 import com.notificationService.common.event.SendEmailEvent;
-import com.notificationService.common.event.UserRegisteredEvent;
 import com.notificationService.email.service.IEmailService;
 import com.notificationService.notification.Notification;
 import com.notificationService.notification.enums.NotificationChannel;
@@ -38,11 +38,21 @@ public class EmailNotificationListener {
         notification = notificationService.save(notification);
 
         try{
-            emailService.sendEmail(
-                    event.to(),
-                    event.subject(),
-                    event.body()
-            );
+            if(event.contentType() == EmailContentType.HTML) {
+                emailService.sendHtmlEmail(
+                        event.to(),
+                        event.subject(),
+                        event.body()
+                );
+
+            } else {
+                emailService.sendEmail(
+                        event.to(),
+                        event.subject(),
+                        event.body()
+                );
+            }
+
             notification.setStatus(NotificationStatus.SENT);
             notification.setSentAt(LocalDateTime.now());
 
@@ -54,6 +64,17 @@ public class EmailNotificationListener {
         notificationService.save(notification);
     }
 
+    public Notification buildNotification(SendEmailEvent event) {
+
+        Notification notification = new Notification();
+        notification.setRecipient(event.to());
+        notification.setBody(event.body());
+        notification.setSubject(event.subject());
+
+        return notification;
+    }
+
+    /*
     //Send welcome email with activation url after registration
     @RabbitListener(queues = RabbitMQConstants.USER_REGISTERED_QUEUE)
     public void consumeUserRegistered(UserRegisteredEvent event) {
@@ -88,14 +109,5 @@ public class EmailNotificationListener {
 
         notificationService.save(notification);
     }
-
-    public Notification buildNotification(SendEmailEvent event) {
-
-        Notification notification = new Notification();
-        notification.setRecipient(event.to());
-        notification.setBody(event.body());
-        notification.setSubject(event.subject());
-
-        return notification;
-    }
+     */
 }

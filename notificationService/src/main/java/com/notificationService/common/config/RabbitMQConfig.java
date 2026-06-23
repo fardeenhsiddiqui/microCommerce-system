@@ -40,15 +40,6 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue userRegisteredQueue() {
-
-        return QueueBuilder
-                .durable(
-                        RabbitMQConstants.USER_REGISTERED_QUEUE)
-                .build();
-    }
-
-    @Bean
     public Binding binding(Queue emailQueue, TopicExchange notificationExchange) {
 
         return BindingBuilder
@@ -56,17 +47,6 @@ public class RabbitMQConfig {
                 .to(notificationExchange)
                 .with(
                         RabbitMQConstants.EMAIL_ROUTING_KEY
-                );
-    }
-
-    @Bean
-    public Binding userRegisteredBinding(Queue userRegisteredQueue, TopicExchange notificationExchange) {
-
-        return BindingBuilder
-                .bind(userRegisteredQueue)
-                .to(notificationExchange)
-                .with(
-                        RabbitMQConstants.USER_REGISTERED_ROUTING_KEY
                 );
     }
 
@@ -82,4 +62,25 @@ public class RabbitMQConfig {
         rabbitTemplate.setMessageConverter(messageConverter);
         return rabbitTemplate;
     }
+
+    /*
+    @Bean
+    public Queue userRegisteredQueue() {
+
+        return QueueBuilder
+                .durable(
+                        RabbitMQConstants.USER_REGISTERED_QUEUE)
+                .build();
+    }
+    @Bean
+    public Binding userRegisteredBinding(Queue userRegisteredQueue, TopicExchange notificationExchange) {
+
+        return BindingBuilder
+                .bind(userRegisteredQueue)
+                .to(notificationExchange)
+                .with(
+                        RabbitMQConstants.USER_REGISTERED_ROUTING_KEY
+                );
+    }
+     */
 }
