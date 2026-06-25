@@ -94,6 +94,7 @@ public class AuthService implements IAuthService{
         user.setEmailVerified(false);
         user.setAccountLocked(false);
         user.setFailedLoginAttempts(0);
+        //no need
         user.setDeleted(false);
         user.setLastLoginAt(null);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
