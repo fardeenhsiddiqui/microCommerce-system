@@ -29,16 +29,6 @@ public class JwtUtil {
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
 
-    public String generateToken(UserDetails userDetails) {
-        log.info("1...... 3 ");
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
-                .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
-                .compact();
-    }
-
     // Create short-lived token used for API authorization
     public String generateAccessToken(User user) {
 

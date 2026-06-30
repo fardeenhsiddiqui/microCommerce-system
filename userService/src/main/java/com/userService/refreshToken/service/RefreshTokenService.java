@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,16 +23,27 @@ public class RefreshTokenService implements IRefreshTokenService{
 
     // Create a new session record for the authenticated user
     @Override
+    @Transactional
     public RefreshToken createRefreshToken(User user) {
 
-        refreshTokenRepository.deleteByUser(user);
+        Optional<RefreshToken> existing = refreshTokenRepository.findByUser(user);
+        if (existing.isPresent()) {
+
+            RefreshToken token = existing.get();
+            token.setToken(UUID.randomUUID().toString());
+            token.setExpiryDate(LocalDateTime.now().plusDays(7));
+            token.setRevoked(false);
+
+            return refreshTokenRepository.save(token);
+        }
+
+        //refreshTokenRepository.deleteByUser(user);
 
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
         refreshToken.setToken(UUID.randomUUID().toString());
         refreshToken.setExpiryDate(LocalDateTime.now().plusDays(7));
         refreshToken.setRevoked(false);
-
         return refreshTokenRepository.save(refreshToken);
     }
 
@@ -71,14 +83,14 @@ public class RefreshTokenService implements IRefreshTokenService{
         refreshTokenRepository.save(refreshToken);
     }
 
-    // Force all active sessions to re-authenticate
+    // Force only one active sessions to re-authenticate
     @Override
     public void revokeUserTokens(User user) {
 
-        List<RefreshToken> tokens = refreshTokenRepository.findByUser(user);
-
-        tokens.forEach(token -> token.setRevoked(true));
-
-        refreshTokenRepository.saveAll(tokens);
+        Optional<RefreshToken> tokens = refreshTokenRepository.findByUser(user);
+        tokens.ifPresent( s -> {
+            s.setRevoked(true);
+            refreshTokenRepository.save(s);
+        });
     }
 }
