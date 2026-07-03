@@ -2,13 +2,18 @@ package com.api_gateway.filter;
 
 import com.api_gateway.config.RouteValidator;
 import com.api_gateway.util.GatewayJwtService;
-import io.jsonwebtoken.Claims;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.http.MediaType;
+import com.api_gateway.dto.ErrorResponse;
+
+import java.time.LocalDateTime;
 
 
 @Component
@@ -16,10 +21,12 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
     private final GatewayJwtService jwtService;
     private final RouteValidator routeValidator;
+    private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(GatewayJwtService gatewayJwtService, RouteValidator routeValidator) {
+    public JwtAuthenticationFilter(GatewayJwtService gatewayJwtService, RouteValidator routeValidator, ObjectMapper objectMapper) {
         this.jwtService = gatewayJwtService;
         this.routeValidator = routeValidator;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -36,14 +43,20 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                 .getFirst("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return writeErrorResponse(
+                    exchange,
+                    HttpStatus.UNAUTHORIZED,
+                    "Authorization header is missing or invalid."
+            );
         }
 
         String token = authHeader.substring(7);
         if (!jwtService.isTokenValid(token)) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return writeErrorResponse(
+                    exchange,
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid or expired JWT token."
+            );
         }
 
         String username = jwtService.extractUsername(token);
@@ -57,6 +70,14 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                 claims -> claims.get("userId", String.class)
         );
 
+        if (path.startsWith("/api/admin") && !"ADMIN".equals(role)) {
+            return writeErrorResponse(
+                    exchange,
+                    HttpStatus.FORBIDDEN,
+                    "You don't have permission to access this resource."
+            );
+        }
+
         ServerWebExchange mutatedExchange = exchange.mutate()
                 .request(
                         exchange.getRequest()
@@ -69,6 +90,35 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                 .build();
 
         return chain.filter(mutatedExchange);
-//        return chain.filter(exchange);
+    }
+
+    private Mono<Void> writeErrorResponse(ServerWebExchange exchange,
+                                          HttpStatus status,
+                                          String message) {
+
+        exchange.getResponse().setStatusCode(status);
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                exchange.getRequest().getPath().value()
+        );
+
+        try {
+
+            byte[] bytes = objectMapper.writeValueAsBytes(error);
+
+            DataBuffer buffer = exchange.getResponse()
+                    .bufferFactory()
+                    .wrap(bytes);
+
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+
+        } catch (Exception ex) {
+            return exchange.getResponse().setComplete();
+        }
     }
 }
