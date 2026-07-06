@@ -5,21 +5,19 @@ import com.productServices.category.repo.CategoryRepository;
 import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
 import com.productServices.product.dto.*;
-import com.productServices.product.enums.ProductStatus;
 import com.productServices.product.event.ProductRestockedEvent;
 import com.productServices.product.mapper.ProductMapper;
 import com.productServices.product.publisher.RestockEventPublisher;
 import com.productServices.product.repo.ProductRepository;
 import com.productServices.product.repo.ProductSearchRepository;
-import com.productServices.productImage.dto.ImageResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,6 +28,7 @@ public class ProductCommandService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final RestockEventPublisher eventPublisher;
+
     @Autowired(required = false)
     private ProductSearchRepository productSearchRepository;
     private final ProductMapper productMapper;
@@ -53,8 +52,12 @@ public class ProductCommandService {
         Product savedProduct = productRepository.save(product);
 
         // Index in Elasticsearch (if enabled)
-        storeDataProductIndex(savedProduct);
+        if (productSearchRepository != null) {
+            // ES enabled, just save it
+            productSearchRepository.save(productMapper.toIndex(savedProduct));
+        }
 
+        //currently disabled to rabbit mq for testing
         // Optionally publish restock event
 //        if (savedProduct.getStock() > 0) {
 //            eventPublisher.publish(new ProductRestockedEvent(savedProduct.getId(), savedProduct.getName()));
@@ -81,14 +84,7 @@ public class ProductCommandService {
                                 "Category not found: " + dto.categoryId());
                     }
 
-                    Product product = new Product();
-                    product.setName(dto.name());
-                    product.setDescription(dto.description());
-                    product.setPrice(dto.price());
-                    product.setStock(dto.stock() == null ? 0L : dto.stock());
-                    product.setCategory(category);
-                    product.setProductStatus(ProductStatus.ACTIVE);
-
+                    Product product = productMapper.toEntity(dto, category);;
                     return product;
                 })
                 .toList();
@@ -97,7 +93,7 @@ public class ProductCommandService {
 
         if (productSearchRepository != null) {
             List<ProductIndex> indexes = savedProducts.stream()
-                    .map(this::toIndex)
+                    .map(productMapper::toIndex)
                     .toList();
 
             productSearchRepository.saveAll(indexes);
@@ -119,14 +115,6 @@ public class ProductCommandService {
                 .toList();
     }
 
-    public void storeDataProductIndex(Product product) {
-        if (productSearchRepository == null) {
-            // ES disabled, just skip indexing
-            return;
-        }
-        productSearchRepository.save(toIndex(product));
-    }
-
     @Transactional
     public ProductResponseDTO updateStock(UUID productId, Long newStock) {
         Product product = productRepository.findById(productId)
@@ -143,35 +131,34 @@ public class ProductCommandService {
 
     @Transactional
     public void deleteProduct(UUID productId) {
-        Optional<Product> productOpt = productRepository.findById(productId);
-        if (productOpt.isPresent()) {
-            Product product = productOpt.get();
-            product.setDeletedDate(java.time.LocalDateTime.now());
-            product.setDeletedBy("Admin");
-            productRepository.save(product);
-        } else {
-            throw new RuntimeException("Product not found");
-        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found"));
+
+        product.setDeletedDate(LocalDateTime.now());
+        product.setDeletedBy("Admin");
+        productRepository.save(product);
     }
 
+    @Transactional
     public ProductResponseDTO updateProduct(UUID productId, UpdateProductDTO dto) {
 
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
 
-        Category category = categoryRepository.findById(UUID.fromString(dto.categoryId()))
+        Category category = categoryRepository.findById(dto.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-        product.setName(dto.name());
-        product.setDescription(dto.description());
-        product.setPrice(Double.valueOf(dto.price()));
-        product.setCategory(category);
+        productMapper.updateEntity(product, dto, category);
 
-        Product saved = productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
 
-        storeDataProductIndex(saved);
+        if (productSearchRepository != null) {
+            // ES enabled, just save it
+            productSearchRepository.save(productMapper.toIndex(savedProduct));
+        }
 
-        return productMapper.toResponse(saved);
+        return productMapper.toResponse(savedProduct);
     }
 
     @Transactional
@@ -186,13 +173,4 @@ public class ProductCommandService {
         return productMapper.toResponse(saved);
     }
 
-    private ProductResponseDTO mapToResponse(Product product) {
-
-        return productMapper.toResponse(product);
-    }
-
-    private ProductIndex toIndex(Product product) {
-
-        return productMapper.toIndex(product);
-    }
 }

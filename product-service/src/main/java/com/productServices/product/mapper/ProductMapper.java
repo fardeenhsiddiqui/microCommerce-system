@@ -5,6 +5,7 @@ import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
 import com.productServices.product.dto.CreateProductDTO;
 import com.productServices.product.dto.ProductResponseDTO;
+import com.productServices.product.dto.UpdateProductDTO;
 import com.productServices.product.enums.ProductStatus;
 import com.productServices.productImage.dto.ImageResponseDTO;
 import org.springframework.stereotype.Component;
@@ -56,5 +57,15 @@ public class ProductMapper {
         index.setPrice(product.getPrice());
 
         return index;
+    }
+
+    public void updateEntity(Product product,
+                             UpdateProductDTO dto,
+                             Category category){
+
+        product.setName(dto.name());
+        product.setDescription(dto.description());
+        product.setPrice(dto.price());
+        product.setCategory(category);
     }
 }

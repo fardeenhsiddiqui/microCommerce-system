@@ -14,11 +14,11 @@ public record CreateProductDTO(
         @Size(max = 500)
         String description,
 
-        @NotBlank
+        @NotNull(message = "Price is required")
         @DecimalMin("0.0")
         Double price,
 
-        @NotBlank
+        @NotNull
         UUID categoryId,
 
         @PositiveOrZero

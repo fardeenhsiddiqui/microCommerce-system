@@ -8,6 +8,8 @@ import com.productServices.product.repo.ProductRepository;
 import com.productServices.product.repo.ProductSearchRepository;
 import com.productServices.productImage.dto.ImageResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,10 +30,10 @@ public class ProductQueryService {
         this.productMapper = productMapper;
     }
 
-    public List<ProductResponseDTO> getAllProducts() {
-        return productRepository.findByDeletedDateIsNull().stream()
-                .map(productMapper::toResponse)
-                .collect(Collectors.toList());
+    public Page<ProductResponseDTO> getProducts(Pageable pageable) {
+
+        return productRepository.findByDeletedDateIsNull(pageable)
+                .map(productMapper::toResponse);
     }
 
     public ProductResponseDTO getProduct(UUID productId) {

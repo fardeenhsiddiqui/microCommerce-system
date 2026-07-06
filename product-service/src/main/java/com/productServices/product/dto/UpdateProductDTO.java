@@ -4,6 +4,8 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public record UpdateProductDTO(
 
         @NotBlank
@@ -16,9 +18,9 @@ public record UpdateProductDTO(
 
         @NotBlank
         @DecimalMin("0.0")
-        String price,
+        Double price,
 
         @NotBlank
-        String categoryId
+        UUID categoryId
 ) {
 }

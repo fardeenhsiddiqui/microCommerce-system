@@ -8,6 +8,10 @@ import com.productServices.productImage.dto.ImageResponseDTO;
 import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
 import com.productServices.product.service.IProductService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +32,13 @@ public class ProductQueryController {
 
     // GET /api/products
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductResponseDTO>>> getAllProducts() {
-        List<ProductResponseDTO> products = productQueryService.getAllProducts();
+    public ResponseEntity<ApiResponse<Page<ProductResponseDTO>>> getProducts(
+            @PageableDefault(page = 0, size = 10, sort = "createdDate", direction = Sort.Direction.DESC)
+            Pageable pageable
+            ) {
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ApiResponse<>(true, products, null));
+                .body(new ApiResponse<>(true, productQueryService.getProducts(pageable), null));
     }
 
     // GET /api/products/{id}
