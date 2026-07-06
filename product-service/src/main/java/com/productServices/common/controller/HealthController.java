@@ -1,14 +1,34 @@
 package com.productServices.common.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@RequestMapping("/api/products/")
 @RestController
 public class HealthController {
 
     @GetMapping("e-com")
     public String helloWorld(){
         return "Fardeen is Here";
+    }
+
+    public ResponseEntity<Map<String,String>> headers(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role) {
+
+        Map<String,String> map = new HashMap<>();
+        map.put("userId", userId);
+        map.put("email", email);
+        map.put("role", role);
+
+        return ResponseEntity.ok(map);
     }
 
 //    @Transactional ensures each operation is atomic.
