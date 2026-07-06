@@ -1,8 +1,6 @@
 package com.productServices.category;
 
-import com.productServices.category.dto.CategoryResponseDTO;
-import com.productServices.category.dto.CreateCategoryDTO;
-import com.productServices.category.dto.MinimalCategoryDTO;
+import com.productServices.category.dto.*;
 import com.productServices.category.service.CategoryService;
 import com.productServices.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -26,8 +24,7 @@ public class CategoryController {
     @PostMapping("addCategory")
     public ResponseEntity<ApiResponse<CategoryResponseDTO>> addCategory(@Valid @RequestBody CreateCategoryDTO dto) {
         try {
-            Category category = categoryService.createCategory(dto);
-            CategoryResponseDTO response = mapToResponseDTO(category);
+            CategoryResponseDTO response = categoryService.createCategory(dto);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ApiResponse<>(true, response, null));
         } catch (Exception e) {
@@ -44,12 +41,57 @@ public class CategoryController {
 
     @GetMapping("/subCategory")
     public ResponseEntity<ApiResponse<List<MinimalCategoryDTO>>> getSubCategories(@RequestParam String categoryId) {
-        System.out.println("1......." + categoryId);
+
         List<MinimalCategoryDTO> list = categoryService.getSubCategory(UUID.fromString(categoryId));
         return ResponseEntity.ok(new ApiResponse<>(true, list, null));
     }
 
-    private CategoryResponseDTO mapToResponseDTO(Category category) {
-        return new CategoryResponseDTO(category);
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<ApiResponse<CategoryResponseDTO>> getCategory(
+            @PathVariable UUID categoryId) {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        categoryService.getCategory(categoryId),
+                        null
+                )
+        );
     }
+
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<ApiResponse<CategoryResponseDTO>> updateCategory(
+            @PathVariable UUID categoryId,
+            @RequestBody @Valid UpdateCategoryDTO dto) {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        categoryService.updateCategory(categoryId, dto),
+                        null
+                )
+        );
+    }
+
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID categoryId) {
+
+        categoryService.deleteCategory(categoryId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/tree")
+    public ResponseEntity<ApiResponse<List<CategoryTreeDTO>>> tree() {
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        categoryService.getTree(),
+                        null
+                )
+        );
+    }
+
 }

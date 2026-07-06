@@ -1,6 +1,7 @@
 package com.productServices.category.repo;
 
 import com.productServices.category.Category;
+import io.micrometer.common.KeyValues;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +21,5 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     List<Category> findTopLevelCategories();
 
 
+    List<Category> findByParentIsNullAndDeletedDateIsNull();
 }
