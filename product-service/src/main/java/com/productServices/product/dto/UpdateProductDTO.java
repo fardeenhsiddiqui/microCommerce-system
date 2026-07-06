@@ -1,10 +1,10 @@
 package com.productServices.product.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-import java.util.UUID;
-
-public record CreateProductDTO(
+public record UpdateProductDTO(
 
         @NotBlank
         @Size(max = 100)
@@ -16,14 +16,9 @@ public record CreateProductDTO(
 
         @NotBlank
         @DecimalMin("0.0")
-        Double price,
+        String price,
 
         @NotBlank
-        UUID categoryId,
-
-        @PositiveOrZero
-        Long stock
-
+        String categoryId
 ) {
-
 }

@@ -3,6 +3,9 @@ package com.productServices.product.controller;
 import com.productServices.common.dto.ApiResponse;
 import com.productServices.product.dto.CreateProductDTO;
 import com.productServices.product.dto.ProductResponseDTO;
+import com.productServices.product.dto.UpdateProductDTO;
+import com.productServices.product.dto.UpdateProductStatusDTO;
+import com.productServices.product.service.ProductCommandService;
 import com.productServices.productImage.dto.ImageResponseDTO;
 import com.productServices.product.Product;
 import com.productServices.product.service.IProductService;
@@ -20,9 +23,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/products")
 public class ProductCommandController {
 
-    private final IProductService productService;
+    private final ProductCommandService productService;
 
-    public ProductCommandController(IProductService productService) {
+    public ProductCommandController(ProductCommandService productService) {
         this.productService = productService;
     }
 
@@ -31,10 +34,10 @@ public class ProductCommandController {
     public ResponseEntity<ApiResponse<ProductResponseDTO>> addProduct(
             @Valid @RequestBody CreateProductDTO dto) {
 
-        Product product = productService.createProduct(dto);
-        ProductResponseDTO response = convertToDTO(product);
+        ProductResponseDTO product = productService.createProduct(dto);
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(true, response, null));
+                .body(new ApiResponse<>(true, product, null));
     }
 
     // POST /api/products/bulk  (multiple create)
@@ -42,11 +45,19 @@ public class ProductCommandController {
     public ResponseEntity<ApiResponse<List<ProductResponseDTO>>> createProducts(
             @Valid @RequestBody List<@Valid CreateProductDTO> dtos) {
 
-        List<Product> products = productService.createProducts(dtos);
-        List<ProductResponseDTO> result = products.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        List<ProductResponseDTO> result = productService.createProducts(dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, result, null));
+    }
+
+    @PostMapping("/{productId}")
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> updateProduct(
+            @PathVariable UUID productId,
+            @Valid @RequestBody UpdateProductDTO dto) {
+
+        ProductResponseDTO result = productService.updateProduct(productId, dto);
+
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse<>(true, result, null));
     }
 
@@ -56,9 +67,8 @@ public class ProductCommandController {
             @PathVariable String productId,
             @RequestParam Long stock) {
 
-        Product product = productService.updateStock(UUID.fromString(productId), stock);
-        ProductResponseDTO response = convertToDTO(product);
-        return ResponseEntity.ok(new ApiResponse<>(true, response, null));
+        ProductResponseDTO product = productService.updateStock(UUID.fromString(productId), stock);
+        return ResponseEntity.ok(new ApiResponse<>(true, product, null));
     }
 
     // DELETE /api/products/{id}  (soft delete)
@@ -69,19 +79,18 @@ public class ProductCommandController {
                 .body(new ApiResponse<>(true, null, null));
     }
 
-    private ProductResponseDTO convertToDTO(Product product) {
+    @PatchMapping("/{productId}/status")
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> updateStatus(
+            @PathVariable UUID productId,
+            @RequestBody @Valid UpdateProductStatusDTO dto) {
 
-        List<ImageResponseDTO> images = product.getGalleryImages().stream()
-                .map(img -> new ImageResponseDTO(
-                        img.getImageUrl(),
-                        img.getLabel(),
-                        img.getAltText()
-                ))
-                .toList();
-
-        return new ProductResponseDTO(
-                product,
-                images
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        productService.updateStatus(productId, dto),
+                        null
+                )
         );
     }
+
 }
