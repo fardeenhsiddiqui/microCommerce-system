@@ -1,14 +1,11 @@
 package com.productServices.product.controller;
 
 import com.productServices.common.dto.ApiResponse;
-import com.productServices.product.dto.ProductDTO;
+import com.productServices.product.dto.PageResponse;
+import com.productServices.product.dto.ProductFilter;
 import com.productServices.product.dto.ProductResponseDTO;
 import com.productServices.product.service.ProductQueryService;
-import com.productServices.productImage.dto.ImageResponseDTO;
-import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
-import com.productServices.product.service.IProductService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -32,13 +29,14 @@ public class ProductQueryController {
 
     // GET /api/products
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<ProductResponseDTO>>> getProducts(
+    public ResponseEntity<ApiResponse<PageResponse<ProductResponseDTO>>> getProducts(
+            ProductFilter filter,
             @PageableDefault(page = 0, size = 10, sort = "createdDate", direction = Sort.Direction.DESC)
             Pageable pageable
             ) {
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ApiResponse<>(true, productQueryService.getProducts(pageable), null));
+                .body(new ApiResponse<>(true, productQueryService.getProducts(filter, pageable), null));
     }
 
     // GET /api/products/{id}

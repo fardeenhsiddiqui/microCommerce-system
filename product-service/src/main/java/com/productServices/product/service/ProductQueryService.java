@@ -2,14 +2,16 @@ package com.productServices.product.service;
 
 import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
+import com.productServices.product.dto.PageResponse;
+import com.productServices.product.dto.ProductFilter;
 import com.productServices.product.dto.ProductResponseDTO;
 import com.productServices.product.mapper.ProductMapper;
 import com.productServices.product.repo.ProductRepository;
 import com.productServices.product.repo.ProductSearchRepository;
-import com.productServices.productImage.dto.ImageResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,10 +32,24 @@ public class ProductQueryService {
         this.productMapper = productMapper;
     }
 
-    public Page<ProductResponseDTO> getProducts(Pageable pageable) {
+    public PageResponse<ProductResponseDTO> getProducts(ProductFilter filter, Pageable pageable) {
 
-        return productRepository.findByDeletedDateIsNull(pageable)
+        Specification<Product> specification =
+                ProductSpecification.withFilter(filter);
+
+        Page<ProductResponseDTO> result = productRepository
+                .findAll(specification, pageable)
                 .map(productMapper::toResponse);
+
+        return new PageResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.isLast()
+        );
+
     }
 
     public ProductResponseDTO getProduct(UUID productId) {
