@@ -24,6 +24,7 @@ public class CategoryService {
         this.categoryMapper = categoryMapper;
     }
 
+    @Transactional
     public CategoryResponseDTO createCategory(CreateCategoryDTO dto) {
 
         Category category = new Category();

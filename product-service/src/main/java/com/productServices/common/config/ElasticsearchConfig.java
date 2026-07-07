@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 @Configuration
-@EnableElasticsearchRepositories(basePackages = "com.productServices.product.repository")
+@EnableElasticsearchRepositories(basePackages = "com.productServices.product.repo")
 @ConditionalOnProperty(
         name = "product.search.enabled",
         havingValue = "true",

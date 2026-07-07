@@ -4,6 +4,7 @@ import com.productServices.category.Category;
 import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
 import com.productServices.product.dto.CreateProductDTO;
+import com.productServices.product.dto.ProductIndexDTO;
 import com.productServices.product.dto.ProductResponseDTO;
 import com.productServices.product.dto.UpdateProductDTO;
 import com.productServices.product.enums.ProductStatus;
@@ -67,5 +68,15 @@ public class ProductMapper {
         product.setDescription(dto.description());
         product.setPrice(dto.price());
         product.setCategory(category);
+    }
+
+    public ProductIndexDTO productIndexDTO(ProductIndex index) {
+
+        return new ProductIndexDTO(
+                index.getName(),
+                index.getDescription(),
+                index.getCategory(),
+                index.getPrice()
+        );
     }
 }

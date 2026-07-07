@@ -3,6 +3,7 @@ package com.productServices.product.controller;
 import com.productServices.common.dto.ApiResponse;
 import com.productServices.product.dto.PageResponse;
 import com.productServices.product.dto.ProductFilter;
+import com.productServices.product.dto.ProductIndexDTO;
 import com.productServices.product.dto.ProductResponseDTO;
 import com.productServices.product.service.ProductQueryService;
 import com.productServices.product.ProductIndex;
@@ -48,9 +49,10 @@ public class ProductQueryController {
 
     // GET /api/products/search?query=...
     @GetMapping("/search")
-    public ResponseEntity<List<ProductIndex>> search(@RequestParam String query) {
-        List<ProductIndex> results = productQueryService.search(query);
-        return ResponseEntity.ok(results);
+    public ResponseEntity<ApiResponse<List<ProductIndexDTO>>> search(@RequestParam String query) {
+        List<ProductIndexDTO> results = productQueryService.search(query);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(true, results, null));
     }
 
 }

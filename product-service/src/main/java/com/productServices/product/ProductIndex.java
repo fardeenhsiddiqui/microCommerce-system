@@ -1,5 +1,6 @@
 package com.productServices.product;
 
+import com.productServices.product.enums.ProductStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
@@ -13,6 +14,8 @@ public class ProductIndex {
     private String description;
     private String category;
     private Double price;
+    private ProductStatus status;
+    private Long stock;
 
     public String getId() {
         return id;
@@ -52,5 +55,21 @@ public class ProductIndex {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public ProductStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ProductStatus status) {
+        this.status = status;
+    }
+
+    public Long getStock() {
+        return stock;
+    }
+
+    public void setStock(Long stock) {
+        this.stock = stock;
     }
 }

@@ -4,6 +4,7 @@ import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
 import com.productServices.product.dto.PageResponse;
 import com.productServices.product.dto.ProductFilter;
+import com.productServices.product.dto.ProductIndexDTO;
 import com.productServices.product.dto.ProductResponseDTO;
 import com.productServices.product.mapper.ProductMapper;
 import com.productServices.product.repo.ProductRepository;
@@ -11,6 +12,7 @@ import com.productServices.product.repo.ProductSearchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,7 @@ public class ProductQueryService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
+    //true - after ES enable
     @Autowired(required = false)
     private ProductSearchRepository productSearchRepository;
 
@@ -59,11 +62,13 @@ public class ProductQueryService {
     }
 
 
-    public List<ProductIndex> search(String keyword) {
+    public List<ProductIndexDTO> search(String keyword) {
         if (productSearchRepository == null) {
             throw new IllegalStateException("Search is disabled because Elasticsearch is not configured.");
         }
-        return productSearchRepository.findByNameContaining(keyword);
+
+        List<ProductIndex> indexList = productSearchRepository.search(keyword);
+        return indexList.stream().map(productMapper::productIndexDTO).toList();
     }
 
 }

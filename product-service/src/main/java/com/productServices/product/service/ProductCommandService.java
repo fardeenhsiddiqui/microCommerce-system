@@ -29,6 +29,7 @@ public class ProductCommandService {
     private final CategoryRepository categoryRepository;
     private final RestockEventPublisher eventPublisher;
 
+    //true - after ES enable
     @Autowired(required = false)
     private ProductSearchRepository productSearchRepository;
     private final ProductMapper productMapper;
@@ -137,6 +138,11 @@ public class ProductCommandService {
 
         product.setDeletedDate(LocalDateTime.now());
         product.setDeletedBy("Admin");
+
+        if (productSearchRepository != null) {
+            productSearchRepository.deleteById(product.getId().toString());
+        }
+
         productRepository.save(product);
     }
 
