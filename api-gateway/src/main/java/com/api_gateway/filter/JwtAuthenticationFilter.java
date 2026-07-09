@@ -1,7 +1,7 @@
 package com.api_gateway.filter;
 
-import com.api_gateway.config.RouteValidator;
-import com.api_gateway.util.GatewayJwtService;
+import com.api_gateway.util.RouteValidator;
+import com.api_gateway.service.GatewayJwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -14,6 +14,8 @@ import org.springframework.http.MediaType;
 import com.api_gateway.dto.ErrorResponse;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 
 @Component
@@ -71,17 +73,30 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         );
 
         if (path.startsWith("/api/admin") && !"ADMIN".equals(role)) {
-            return writeErrorResponse(
-                    exchange,
-                    HttpStatus.FORBIDDEN,
-                    "You don't have permission to access this resource."
-            );
+            Optional<List<String>> requiredRoles =
+                    routeValidator.getRequiredRoles(path);
+
+            if (requiredRoles.isPresent()
+                    && !requiredRoles.get().contains(role)) {
+
+                return writeErrorResponse(
+                        exchange,
+                        HttpStatus.FORBIDDEN,
+                        "Access Denied"
+                );
+            }
+//            return writeErrorResponse(
+//                    exchange,
+//                    HttpStatus.FORBIDDEN,
+//                    "You don't have permission to access this resource."
+//            );
         }
 
         ServerWebExchange mutatedExchange = exchange.mutate()
                 .request(
                         exchange.getRequest()
                                 .mutate()
+                                .header("X-Username", username)
                                 .header("X-User-Id", userId)
                                 .header("X-User-Email", email)
                                 .header("X-User-Role", role)
