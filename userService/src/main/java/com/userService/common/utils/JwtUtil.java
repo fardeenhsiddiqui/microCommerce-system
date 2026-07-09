@@ -26,7 +26,7 @@ public class JwtUtil {
     private String secret;
     @Value("${jwt.expiration}")
     private long accessExpiration;
-    @Value("${jwt.refresh-expiration}")
+    @Value("${jwt.refresh.expiration}")
     private long refreshExpiration;
 
     // Create short-lived token used for API authorization

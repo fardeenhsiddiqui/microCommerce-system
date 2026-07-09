@@ -36,8 +36,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'co.elastic.clients:elasticsearch-java'
 	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
-//	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
+	//central configuration by config-repo
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 	// Import the BOM
 	implementation platform("software.amazon.awssdk:bom:2.25.60")
 	implementation "software.amazon.awssdk:s3"
