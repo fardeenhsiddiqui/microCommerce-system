@@ -1,5 +1,7 @@
 package com.productServices.product.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.productServices.productImage.dto.ImageResponseDTO;
 import com.productServices.product.Product;
 
@@ -21,6 +23,25 @@ public class ProductResponseDTO {
         this.desc = product.getDescription();
         this.price = product.getPrice();
         this.categoryName = product.getCategory().getName();
+        this.images = images;
+    }
+
+    @JsonCreator
+    public ProductResponseDTO(
+
+            @JsonProperty("id") UUID id,
+            @JsonProperty("name") String name,
+            @JsonProperty("desc") String desc,
+            @JsonProperty("price") Double price,
+            @JsonProperty("categoryName") String categoryName,
+            @JsonProperty("images") List<ImageResponseDTO> images
+    ) {
+
+        this.id = id;
+        this.name = name;
+        this.desc = desc;
+        this.price = price;
+        this.categoryName = categoryName;
         this.images = images;
     }
 

@@ -7,6 +7,7 @@ import com.productServices.productImage.ProductImage;
 import com.productServices.product.repo.ProductRepository;
 import com.productServices.productImage.service.IImageService;
 import com.productServices.productImage.service.S3PresignedService;
+import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,12 +40,12 @@ public class ProductImageUploadController {
                                  @PathVariable UUID imageId) {
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         ProductImage image = product.getGalleryImages().stream()
                 .filter(img -> img.getId().equals(imageId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Image not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found"));
 
         String key = IImageService.extractKeyFromUrl(image.getImageUrl());
 

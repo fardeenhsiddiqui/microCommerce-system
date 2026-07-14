@@ -2,6 +2,7 @@ package com.productServices.product.service;
 
 import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
+import com.productServices.product.constant.CacheConstants;
 import com.productServices.product.dto.PageResponse;
 import com.productServices.product.dto.ProductFilter;
 import com.productServices.product.dto.ProductIndexDTO;
@@ -10,8 +11,10 @@ import com.productServices.product.mapper.ProductMapper;
 import com.productServices.product.repo.ProductRepository;
 import com.productServices.product.repo.ProductSearchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,11 @@ public class ProductQueryService {
         this.productMapper = productMapper;
     }
 
+    @Cacheable(
+            value = CacheConstants.PRODUCTS_LIST,
+            key = "#filter.toString() + '_' + #pageable.pageNumber + '_' + #pageable.pageSize",
+            unless = "#result == null || #result.content().isEmpty()"
+    )
     public PageResponse<ProductResponseDTO> getProducts(ProductFilter filter, Pageable pageable) {
 
         Specification<Product> specification =
@@ -55,9 +63,13 @@ public class ProductQueryService {
 
     }
 
+//    @Cacheable(value = CacheConstants.PRODUCTS, key = "#productId")
+    @Cacheable(value = CacheConstants.PRODUCTS, key = "#productId",
+            condition = "#productId != null", unless = "#result == null"
+    )
     public ProductResponseDTO getProduct(UUID productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         return productMapper.toResponse(product);
     }
 

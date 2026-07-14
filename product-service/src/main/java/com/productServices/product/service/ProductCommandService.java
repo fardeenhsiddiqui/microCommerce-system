@@ -4,6 +4,7 @@ import com.productServices.category.Category;
 import com.productServices.category.repo.CategoryRepository;
 import com.productServices.product.Product;
 import com.productServices.product.ProductIndex;
+import com.productServices.product.constant.CacheConstants;
 import com.productServices.product.dto.*;
 import com.productServices.product.event.ProductRestockedEvent;
 import com.productServices.product.mapper.ProductMapper;
@@ -11,6 +12,9 @@ import com.productServices.product.publisher.RestockEventPublisher;
 import com.productServices.product.repo.ProductRepository;
 import com.productServices.product.repo.ProductSearchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +46,10 @@ public class ProductCommandService {
     }
 
     @Transactional
+    @CacheEvict(
+            value = CacheConstants.PRODUCTS_LIST,
+            allEntries = true
+    )
     public ProductResponseDTO createProduct(CreateProductDTO dto) {
 
         Category category = categoryRepository.findById(dto.categoryId())
@@ -68,6 +76,10 @@ public class ProductCommandService {
     }
 
     @Transactional
+    @CacheEvict(
+            value = CacheConstants.PRODUCTS_LIST,
+            allEntries = true
+    )
     public List<ProductResponseDTO> createProducts(List<CreateProductDTO> dtos) {
 
         Map<UUID, Category> categoryMap = categoryRepository.findAllById(
@@ -119,7 +131,7 @@ public class ProductCommandService {
     @Transactional
     public ProductResponseDTO updateStock(UUID productId, Long newStock) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         if (product.getStock() == 0 && newStock > 0) {
             eventPublisher.publish(new ProductRestockedEvent(productId, product.getName()));
@@ -131,6 +143,13 @@ public class ProductCommandService {
     }
 
     @Transactional
+//    @CacheEvict(value = CacheConstants.PRODUCTS, key = "#productId", allEntries = true)
+    @Caching(
+            evict = {
+                    @CacheEvict(value = CacheConstants.PRODUCTS_LIST, allEntries = true),
+                    @CacheEvict(value = CacheConstants.PRODUCTS, key = "#productId")
+            }
+    )
     public void deleteProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() ->
@@ -147,12 +166,21 @@ public class ProductCommandService {
     }
 
     @Transactional
+//    @CachePut(value = CacheConstants.PRODUCTS, key = "#productId")
+    @Caching(
+            put = {
+                    @CachePut(value = CacheConstants.PRODUCTS, key = "#productId")
+            },
+            evict = {
+                    @CacheEvict(value = CacheConstants.PRODUCTS_LIST, allEntries = true)
+            }
+    )
     public ProductResponseDTO updateProduct(UUID productId, UpdateProductDTO dto) {
 
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
 
-        Category category = categoryRepository.findById(dto.categoryId())
+        Category category = categoryRepository.findById(UUID.fromString(dto.categoryId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         productMapper.updateEntity(product, dto, category);

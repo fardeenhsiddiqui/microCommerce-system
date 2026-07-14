@@ -5,6 +5,7 @@ import com.productServices.product.Product;
 import com.productServices.productImage.ProductImage;
 import com.productServices.product.repo.ProductRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +37,7 @@ public class ImageService implements IImageService {
     public Product uploadFile(UUID productId, MultipartFile file) {
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         String key = "products/" + productId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
@@ -76,7 +77,7 @@ public class ImageService implements IImageService {
     public void saveImage(UUID productId, ImageRequest request) {
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         String imageUrl = "https://" + bucket + ".s3.amazonaws.com/" + request.key();
 

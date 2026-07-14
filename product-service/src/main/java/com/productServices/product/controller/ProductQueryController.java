@@ -42,8 +42,8 @@ public class ProductQueryController {
 
     // GET /api/products/{id}
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProduct(@PathVariable String productId) {
-        ProductResponseDTO response = productQueryService.getProduct(UUID.fromString(productId));
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProduct(@PathVariable UUID productId) {
+        ProductResponseDTO response = productQueryService.getProduct(productId);
         return ResponseEntity.ok(new ApiResponse<>(true, response, null));
     }
 
