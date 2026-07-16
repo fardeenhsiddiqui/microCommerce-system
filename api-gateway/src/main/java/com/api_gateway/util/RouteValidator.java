@@ -13,6 +13,7 @@ public class RouteValidator {
 
     public static final List<String> PUBLIC_APIS = List.of(
             "/auth/login",
+            "/auth/product/",
             "/auth/register",
             "/auth/forgot-password",
             "/auth/reset-password",

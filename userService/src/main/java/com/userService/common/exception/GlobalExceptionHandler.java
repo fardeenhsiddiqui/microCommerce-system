@@ -141,12 +141,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
 
-        log.error("Unhandled exception", ex);
-        ApiResponse<Object> response =
-                new ApiResponse<>(false, null,
-                        "Something went wrong");
+        log.error("Runtime exception", ex);
+        ApiResponse<Object> response = new ApiResponse<>(false, null,
+                ex.getMessage());
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(response);
     }
 }

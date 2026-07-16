@@ -40,6 +40,8 @@ dependencies {
 
 	//central configuration by config-repo
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 	// Import the BOM
 	implementation platform("software.amazon.awssdk:bom:2.25.60")
 	implementation "software.amazon.awssdk:s3"
