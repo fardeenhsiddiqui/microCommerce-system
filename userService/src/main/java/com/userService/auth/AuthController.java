@@ -3,6 +3,7 @@ package com.userService.auth;
 import com.userService.auth.dto.JwtResponseDTO;
 import com.userService.auth.dto.LoginRequestDTO;
 import com.userService.auth.service.IAuthService;
+import com.userService.common.dto.ProductResponse;
 import com.userService.emailVerificationToken.dto.ResendVerificationRequest;
 import com.userService.emailVerificationToken.service.EmailVerificationService;
 import com.userService.passwordResetToken.dto.ResetPasswordPayload;
@@ -12,10 +13,13 @@ import com.userService.refreshToken.dto.TokenResponse;
 import com.userService.common.response.ApiResponse;
 import com.userService.user.dto.CreateUserDTO;
 import com.userService.user.dto.UserResponseDTO;
+import com.userService.user.service.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 
 @RestController
@@ -25,11 +29,13 @@ public class AuthController {
     private final IAuthService authService;
     private final EmailVerificationService emailVerificationService;
     private final PasswordResetService passwordResetService;
+    private final IUserService userService;
 
-    public AuthController(IAuthService authService, EmailVerificationService emailVerificationService, PasswordResetService passwordResetService) {
+    public AuthController(IAuthService authService, EmailVerificationService emailVerificationService, PasswordResetService passwordResetService, IUserService userService) {
         this.authService = authService;
         this.emailVerificationService = emailVerificationService;
         this.passwordResetService = passwordResetService;
+        this.userService = userService;
     }
 
     @PostMapping("/register")
@@ -114,6 +120,12 @@ public class AuthController {
                         null
                 )
         );
+    }
+
+    @GetMapping("product/{productId}")
+    public ResponseEntity<ApiResponse<ProductResponse>> getProduct(@PathVariable UUID productId) {
+        ProductResponse response = userService.getProduct(productId);
+        return ResponseEntity.ok(new ApiResponse<>(true, response, null));
     }
 
 }
