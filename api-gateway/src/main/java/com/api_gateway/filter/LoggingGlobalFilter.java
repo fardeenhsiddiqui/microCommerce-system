@@ -24,10 +24,14 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
         String method = exchange.getRequest().getMethod().name();
         String path = exchange.getRequest().getURI().getPath();
+        String correlationId = exchange.getRequest()
+                        .getHeaders()
+                        .getFirst(GatewayConstants.CORRELATION_ID);
+
         String requestId = exchange.getRequest().getHeaders()
                 .getFirst(GatewayConstants.REQUEST_ID);
 
-        log.info("[{}] Incoming Request -> {} {}",requestId, method, path);
+        log.info("[{}] Incoming Request -> {} {}",correlationId, method, path);
 
         return chain.filter(exchange)
                 .then(Mono.fromRunnable(() -> {
@@ -38,7 +42,7 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
                             .getStatusCode() != null ? exchange.getResponse().getStatusCode().value() : 0;
 
                     log.info("[{}] Outgoing Response -> Status: {}, Execution Time: {}",
-                            requestId,
+                            correlationId,
                             status,
                             executionTime);
                 }));
