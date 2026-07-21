@@ -11,6 +11,7 @@ No controller code.
 Think of it as an adapter between your service and another microservice.
  */
 
+import com.userService.common.constants.GatewayConstants;
 import com.userService.common.dto.ProductResponse;
 import com.userService.common.exception.ProductNotFoundException;
 import com.userService.common.exception.ProductServiceUnavailableException;
@@ -20,6 +21,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -43,9 +45,11 @@ public class ProductClient {
     )
     public ProductResponse getProduct(UUID productId) {
 
+        String correlationId = MDC.get("correlationId");
         log.info("Calling Product Service for productId={}", productId);
         ApiResponse<ProductResponse> response = restClient.get()
                 .uri("/api/products/{productId}", productId)
+                .header(GatewayConstants.CORRELATION_ID, correlationId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<ApiResponse<ProductResponse>>() {});
 
