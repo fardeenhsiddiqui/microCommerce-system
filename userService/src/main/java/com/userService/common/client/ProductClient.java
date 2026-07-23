@@ -45,11 +45,9 @@ public class ProductClient {
     )
     public ProductResponse getProduct(UUID productId) {
 
-        String correlationId = MDC.get("correlationId");
         log.info("Calling Product Service for productId={}", productId);
         ApiResponse<ProductResponse> response = restClient.get()
                 .uri("/api/products/{productId}", productId)
-                .header(GatewayConstants.CORRELATION_ID, correlationId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<ApiResponse<ProductResponse>>() {});
 
