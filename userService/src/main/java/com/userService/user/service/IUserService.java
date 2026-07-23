@@ -1,7 +1,7 @@
 package com.userService.user.service;
 
 import com.userService.common.dto.ProductResponse;
-import com.userService.user.User;
+import com.userService.user.dto.UpdateProfileRequest;
 import com.userService.user.dto.UserResponseDTO;
 
 import java.util.UUID;
@@ -10,9 +10,9 @@ public interface IUserService {
 
     UserResponseDTO getCurrentUser();
 
-    UserResponseDTO updateProfile(User request);
+    UserResponseDTO updateProfile(UpdateProfileRequest request);
 
-    void deactivateUser(UUID userId);
+    void deactivateCurrentUser();
 
     ProductResponse getProduct(UUID productId);
 }
