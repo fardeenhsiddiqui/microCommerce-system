@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-@Slf4j
 @Component
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
