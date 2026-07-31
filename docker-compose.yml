@@ -1,0 +1,136 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: userService
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    container_name: rabbitmq
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  redis:
+    image: redis:8
+    container_name: redis
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis-data:/data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
+    container_name: elasticsearch-com
+
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+  config-server:
+    image: config-server
+    container_name: config-server
+
+    ports:
+      - "8888:8888"
+
+    environment:
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+
+    depends_on:
+      - postgres
+
+  discovery-server:
+    image: discovery-server
+    container_name: discovery-server
+
+    ports:
+      - "8761:8761"
+
+    depends_on:
+      - config-server
+
+  user-service:
+    image: user-service
+    container_name: user-service
+
+    ports:
+      - "8081:8081"
+
+    depends_on:
+      - postgres
+      - rabbitmq
+      - discovery-server
+      - config-server
+
+  product-service:
+    image: product-service
+    container_name: product-service
+
+    ports:
+      - "8082:8082"
+
+    depends_on:
+      - postgres
+      - rabbitmq
+      - elasticsearch
+      - discovery-server
+      - config-server
+
+
+  api-gateway:
+    image: api-gateway
+    container_name: api-gateway
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      - config-server
+      - discovery-server
+
+  notification-service:
+    image: notification-service
+    container_name: notification-service
+
+    ports:
+      - "8083:8083"
+
+    depends_on:
+      - postgres
+      - rabbitmq
+      - config-server
+      - discovery-server
+
+
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+  redis-data:
+  elasticsearch-data:
