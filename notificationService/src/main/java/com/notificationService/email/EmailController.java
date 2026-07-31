@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/email")
 public class EmailController {
 
-    private final IEmailService emailService;
-    private final NotificationPublisher publisher;
+//    private final IEmailService emailService;
+//    private final NotificationPublisher publisher;
 
-    public EmailController(IEmailService emailService, NotificationPublisher publisher) {
-        this.emailService = emailService;
-        this.publisher = publisher;
+    public EmailController(
+//            IEmailService emailService, NotificationPublisher publisher
+    ) {
+//        this.emailService = emailService;
+//        this.publisher = publisher;
     }
 
     @PostMapping("/test")
