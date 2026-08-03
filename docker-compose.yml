@@ -2,6 +2,20 @@ x-spring-common: &spring-common
   SPRING_PROFILES_ACTIVE: docker
   SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
 
+x-spring-healthcheck: &spring-healthcheck
+  interval: 10s
+  timeout: 5s
+  retries: 10
+  start_period: 30s
+
+x-spring-service: &spring-service
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
 services:
 
   postgres:
@@ -97,6 +111,8 @@ services:
 
   #  --------------------------
   config-server:
+    <<: *spring-service
+
     image: config-server
     container_name: config-server
 
@@ -104,11 +120,13 @@ services:
       - "8888:8888"
 
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8888/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      <<: *spring-healthcheck
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -q
+        - http://localhost:8888/actuator/health
 
     environment:
       GITHUB_USERNAME: ${GITHUB_USERNAME}
@@ -119,6 +137,8 @@ services:
 
   #  --------------------------
   discovery-server:
+    <<: *spring-service
+
     image: discovery-server
     container_name: discovery-server
 
@@ -126,11 +146,13 @@ services:
       - "8761:8761"
 
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      <<: *spring-healthcheck
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -q
+        - http://localhost:8761/actuator/health
 
     environment:
       <<: *spring-common
@@ -144,6 +166,8 @@ services:
 
   #  --------------------------
   user-service:
+    <<: *spring-service
+
     image: user-service
     container_name: user-service
 
@@ -164,17 +188,21 @@ services:
       <<: *spring-common
 
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      <<: *spring-healthcheck
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -q
+        - http://localhost:8081/actuator/health
 
     networks:
       - micro-commerce-network
 
   #  --------------------------
   product-service:
+    <<: *spring-service
+
     image: product-service
     container_name: product-service
 
@@ -199,17 +227,21 @@ services:
       <<: *spring-common
 
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      <<: *spring-healthcheck
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -q
+        - http://localhost:8082/actuator/health
 
     networks:
       - micro-commerce-network
 
   #  --------------------------
   api-gateway:
+    <<: *spring-service
+
     image: api-gateway
     container_name: api-gateway
 
@@ -226,17 +258,21 @@ services:
       <<: *spring-common
 
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      <<: *spring-healthcheck
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -q
+        - http://localhost:8080/actuator/health
 
     networks:
       - micro-commerce-network
 
   #  --------------------------
   notification-service:
+    <<: *spring-service
+
     image: notification-service
     container_name: notification-service
 
@@ -259,11 +295,13 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
 
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8083/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      <<: *spring-healthcheck
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -q
+        - http://localhost:8083/actuator/health
 
     networks:
       - micro-commerce-network
