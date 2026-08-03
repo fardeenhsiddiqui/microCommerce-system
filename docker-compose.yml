@@ -1,3 +1,7 @@
+x-spring-common: &spring-common
+  SPRING_PROFILES_ACTIVE: docker
+  SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+
 services:
 
   postgres:
@@ -20,6 +24,10 @@ services:
 
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
+    networks:
+      - micro-commerce-network
+
   #  --------------------------
   rabbitmq:
     image: rabbitmq:4.1-management
@@ -37,6 +45,10 @@ services:
 
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+
+    networks:
+      - micro-commerce-network
+
   #  --------------------------
   redis:
     image: redis:8
@@ -53,6 +65,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+    networks:
+      - micro-commerce-network
+
   #  --------------------------
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
@@ -74,6 +90,11 @@ services:
       interval: 15s
       timeout: 10s
       retries: 20
+
+    networks:
+      - micro-commerce-network
+
+
   #  --------------------------
   config-server:
     image: config-server
@@ -92,6 +113,10 @@ services:
     environment:
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
+
+    networks:
+      - micro-commerce-network
+
   #  --------------------------
   discovery-server:
     image: discovery-server
@@ -108,12 +133,15 @@ services:
       start_period: 30s
 
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      <<: *spring-common
 
     depends_on:
       config-server:
         condition: service_healthy
+
+    networks:
+      - micro-commerce-network
+
   #  --------------------------
   user-service:
     image: user-service
@@ -133,8 +161,7 @@ services:
         condition: service_healthy
 
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      <<: *spring-common
 
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health" ]
@@ -142,6 +169,10 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+
+    networks:
+      - micro-commerce-network
+
   #  --------------------------
   product-service:
     image: product-service
@@ -165,8 +196,7 @@ services:
         condition: service_healthy
 
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      <<: *spring-common
 
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health" ]
@@ -174,6 +204,9 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+
+    networks:
+      - micro-commerce-network
 
   #  --------------------------
   api-gateway:
@@ -190,8 +223,7 @@ services:
         condition: service_healthy
 
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      <<: *spring-common
 
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
@@ -199,6 +231,10 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+
+    networks:
+      - micro-commerce-network
+
   #  --------------------------
   notification-service:
     image: notification-service
@@ -218,8 +254,7 @@ services:
         condition: service_healthy
 
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      <<: *spring-common
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
 
@@ -230,6 +265,9 @@ services:
       retries: 10
       start_period: 30s
 
+    networks:
+      - micro-commerce-network
+
 
 
 volumes:
@@ -237,3 +275,7 @@ volumes:
   rabbitmq-data:
   redis-data:
   elasticsearch-data:
+
+networks:
+  micro-commerce-network:
+    driver: bridge
