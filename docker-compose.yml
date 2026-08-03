@@ -12,9 +12,15 @@ services:
     ports:
       - "5432:5432"
 
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
     volumes:
       - postgres-data:/var/lib/postgresql/data
-
+  #  --------------------------
   rabbitmq:
     image: rabbitmq:4.1-management
     container_name: rabbitmq
@@ -23,9 +29,15 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_running" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
-
+  #  --------------------------
   redis:
     image: redis:8
     container_name: redis
@@ -36,6 +48,12 @@ services:
     volumes:
       - redis-data:/data
 
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  #  --------------------------
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
     container_name: elasticsearch-com
@@ -51,6 +69,12 @@ services:
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
 
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+  #  --------------------------
   config-server:
     image: config-server
     container_name: config-server
@@ -58,13 +82,17 @@ services:
     ports:
       - "8888:8888"
 
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
     environment:
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
-
-    depends_on:
-      - postgres
-
+  #  --------------------------
   discovery-server:
     image: discovery-server
     container_name: discovery-server
@@ -72,9 +100,21 @@ services:
     ports:
       - "8761:8761"
 
-    depends_on:
-      - config-server
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+
+    depends_on:
+      config-server:
+        condition: service_healthy
+  #  --------------------------
   user-service:
     image: user-service
     container_name: user-service
@@ -83,11 +123,26 @@ services:
       - "8081:8081"
 
     depends_on:
-      - postgres
-      - rabbitmq
-      - discovery-server
-      - config-server
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
 
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+  #  --------------------------
   product-service:
     image: product-service
     container_name: product-service
@@ -96,13 +151,31 @@ services:
       - "8082:8082"
 
     depends_on:
-      - postgres
-      - rabbitmq
-      - elasticsearch
-      - discovery-server
-      - config-server
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
 
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
 
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  #  --------------------------
   api-gateway:
     image: api-gateway
     container_name: api-gateway
@@ -111,9 +184,22 @@ services:
       - "8080:8080"
 
     depends_on:
-      - config-server
-      - discovery-server
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
 
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+  #  --------------------------
   notification-service:
     image: notification-service
     container_name: notification-service
@@ -122,10 +208,27 @@ services:
       - "8083:8083"
 
     depends_on:
-      - postgres
-      - rabbitmq
-      - config-server
-      - discovery-server
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8083/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
 
 
