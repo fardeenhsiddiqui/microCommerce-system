@@ -17,7 +17,7 @@ jobs:
           - discovery-server
           - notificationService
           - product-service
-          - user-service
+          - userService
 
     steps:
       - name: Checkout Repository
