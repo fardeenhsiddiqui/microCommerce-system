@@ -9,9 +9,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - config-server
+          - discovery-server
+          - notificationService
+          - product-service
+          - user-service
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Print Welcome Message
-        run: echo "GitHub Actions is working successfully!"
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build ${{matrix.service}}
+        working-directory: ${{matrix.service}}
+        run: chmod +x gradlew && ./gradlew clean build
