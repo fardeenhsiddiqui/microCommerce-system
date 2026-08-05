@@ -38,7 +38,9 @@ jobs:
 
       - name: Build ${{matrix.service}}
         working-directory: ${{matrix.service}}
-        run: chmod +x gradlew && ./gradlew clean build
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build --no-daemon
 
       - name: Build Docker Image - ${{ matrix.image }}
         working-directory: ${{ matrix.service }}
