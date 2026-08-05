@@ -11,13 +11,19 @@ jobs:
 
     strategy:
       matrix:
-        service:
-          - api-gateway
-          - config-server
-          - discovery-server
-          - notificationService
-          - product-service
-          - userService
+        include:
+          - service: api-gateway
+            image: api-gateway
+          - service: config-server
+            image: config-server
+          - service: discovery-server
+            image: discovery-server
+          - service: notificationService
+            image: notification-service
+          - service: product-service
+            image: product-service
+          - service: userService
+            image: user-service
 
     steps:
       - name: Checkout Repository
@@ -34,7 +40,6 @@ jobs:
         working-directory: ${{matrix.service}}
         run: chmod +x gradlew && ./gradlew clean build
 
-      - name: Build Docker Image - ${{ matrix.service }}
+      - name: Build Docker Image - ${{ matrix.image }}
         working-directory: ${{ matrix.service }}
-        run: |
-          docker build -t ${{ matrix.service }} .
+        run: docker build -t ${{ matrix.image }} .
