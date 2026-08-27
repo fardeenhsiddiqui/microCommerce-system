@@ -113,7 +113,7 @@ services:
   config-server:
     <<: *spring-service
 
-    image: config-server
+    image: fardeenhsiddiqui/config-server:latest
     container_name: config-server
 
     ports:
@@ -139,7 +139,7 @@ services:
   discovery-server:
     <<: *spring-service
 
-    image: discovery-server
+    image: fardeenhsiddiqui/discovery-server:latest
     container_name: discovery-server
 
     ports:
@@ -168,7 +168,7 @@ services:
   user-service:
     <<: *spring-service
 
-    image: user-service
+    image: fardeenhsiddiqui/user-service:latest
     container_name: user-service
 
     ports:
@@ -203,7 +203,7 @@ services:
   product-service:
     <<: *spring-service
 
-    image: product-service
+    image: fardeenhsiddiqui/product-service:latest
     container_name: product-service
 
     ports:
@@ -242,7 +242,7 @@ services:
   api-gateway:
     <<: *spring-service
 
-    image: api-gateway
+    image: fardeenhsiddiqui/api-gateway:latest
     container_name: api-gateway
 
     ports:
@@ -273,7 +273,7 @@ services:
   notification-service:
     <<: *spring-service
 
-    image: notification-service
+    image: fardeenhsiddiqui/notification-service:latest
     container_name: notification-service
 
     ports:
