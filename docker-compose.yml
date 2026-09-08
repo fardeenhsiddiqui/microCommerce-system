@@ -91,7 +91,8 @@ services:
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
-      ES_JAVA_OPTS: "-Xms256m -Xmx256m"
+      xpack.ml.enabled: "false"
+      ES_JAVA_OPTS: "-Xms384m -Xmx384m"
 
     ports:
       - "9200:9200"
@@ -130,6 +131,7 @@ services:
         - http://localhost:8888/actuator/health
 
     environment:
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx192m"
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
 
@@ -157,6 +159,7 @@ services:
 
     environment:
       <<: *spring-common
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx192m"
 
     depends_on:
       config-server:
@@ -187,6 +190,7 @@ services:
 
     environment:
       <<: *spring-common
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx256m"
 
     healthcheck:
       <<: *spring-healthcheck
@@ -226,6 +230,7 @@ services:
 
     environment:
       <<: *spring-common
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx256m"
 
     healthcheck:
       <<: *spring-healthcheck
@@ -257,6 +262,7 @@ services:
 
     environment:
       <<: *spring-common
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx192m"
 
     healthcheck:
       <<: *spring-healthcheck
@@ -292,6 +298,7 @@ services:
 
     environment:
       <<: *spring-common
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx192m"
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
 
