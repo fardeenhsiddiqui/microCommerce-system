@@ -42,8 +42,8 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build ${{matrix.service}}
-        working-directory: ${{matrix.service}}
+      - name: Build ${{ matrix.service }}
+        working-directory: ${{ matrix.service }}
         run: |
           chmod +x gradlew
           ./gradlew clean build --no-daemon
@@ -59,3 +59,85 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:latest
 
+
+  deploy:
+    name: Deploy to EC2
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/github-actions-microcommerce
+          chmod 600 ~/.ssh/github-actions-microcommerce
+
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh \
+            -i ~/.ssh/github-actions-microcommerce \
+            -o StrictHostKeyChecking=yes \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+
+            set -e
+
+            cd ~/microCommerce-system
+
+            echo "Pulling latest Docker images..."
+            docker compose pull
+
+            echo "Starting updated services..."
+            docker compose up -d --remove-orphans
+
+            echo "Waiting for services to become healthy..."
+
+            services=(
+              api-gateway
+              config-server
+              discovery-server
+              notification-service
+              product-service
+              user-service
+              postgres
+              rabbitmq
+              redis
+              elasticsearch-com
+            )
+
+            timeout=600
+            elapsed=0
+
+            while [ $elapsed -lt $timeout ]; do
+
+              all_healthy=true
+
+              for service in "${services[@]}"; do
+                status=$(docker inspect \
+                  --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' \
+                  "$service" 2>/dev/null || echo "missing")
+
+                echo "$service: $status"
+
+                if [ "$status" != "healthy" ]; then
+                  all_healthy=false
+                fi
+              done
+
+              if [ "$all_healthy" = true ]; then
+                echo "All services are healthy."
+                exit 0
+              fi
+
+              echo "Waiting 10 seconds..."
+              sleep 10
+              elapsed=$((elapsed + 10))
+
+            done
+
+            echo "Deployment did not become healthy within 10 minutes."
+            docker compose ps
+            exit 1
+          EOF
