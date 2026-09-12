@@ -80,19 +80,28 @@ jobs:
           ssh \
             -i ~/.ssh/github-actions-microcommerce \
             -o StrictHostKeyChecking=yes \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            'bash -s' << 'EOF'
 
             set -e
 
             cd ~/microCommerce-system
 
+            echo "======================================"
             echo "Pulling latest Docker images..."
+            echo "======================================"
+
             docker compose pull
 
+            echo "======================================"
             echo "Starting updated services..."
+            echo "======================================"
+
             docker compose up -d --remove-orphans
 
+            echo "======================================"
             echo "Waiting for services to become healthy..."
+            echo "======================================"
 
             services=(
               api-gateway
@@ -115,6 +124,7 @@ jobs:
               all_healthy=true
 
               for service in "${services[@]}"; do
+
                 status=$(docker inspect \
                   --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' \
                   "$service" 2>/dev/null || echo "missing")
@@ -124,26 +134,42 @@ jobs:
                 if [ "$status" != "healthy" ]; then
                   all_healthy=false
                 fi
+
               done
 
               if [ "$all_healthy" = true ]; then
+
                 echo "======================================"
                 echo "All services are healthy."
                 echo "Deployment successful."
                 echo "======================================"
-                exit 0
+
+                break
+
               fi
 
               echo "Waiting 10 seconds..."
+
               sleep 10
               elapsed=$((elapsed + 10))
 
             done
 
-            echo "Deployment did not become healthy within 10 minutes."
-            docker compose ps
-            exit 1
+            if [ "$all_healthy" != true ]; then
+
+              echo "======================================"
+              echo "Deployment failed."
+              echo "Services did not become healthy within 10 minutes."
+              echo "======================================"
+
+              docker compose ps
+
+              exit 1
+
+            fi
+
+            echo "======================================"
+            echo "EC2 deployment completed successfully."
+            echo "======================================"
 
           EOF
-
-          echo "EC2 deployment completed successfully."
