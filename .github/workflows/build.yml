@@ -127,7 +127,10 @@ jobs:
               done
 
               if [ "$all_healthy" = true ]; then
+                echo "======================================"
                 echo "All services are healthy."
+                echo "Deployment successful."
+                echo "======================================"
                 exit 0
               fi
 
@@ -140,4 +143,7 @@ jobs:
             echo "Deployment did not become healthy within 10 minutes."
             docker compose ps
             exit 1
+
           EOF
+
+          echo "EC2 deployment completed successfully."
